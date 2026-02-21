@@ -25,7 +25,7 @@ public class Handle_Save {
         String path = Oberflaeche.path + "\\save\\" + filename + ".txt";
 
         try (BufferedWriter out = new BufferedWriter(new FileWriter(path))) {
-            out.write(arr.length);
+            out.write(String.valueOf(arr.length));
             out.newLine();
             for (int i = 0; i < arr.length; i++) {
                 out.write(arr[i].getFrage());
@@ -47,16 +47,20 @@ public class Handle_Save {
 
         Fragen_Antworten[] ret = new Fragen_Antworten[0];
         try(BufferedReader red  = new BufferedReader(new FileReader(path))){
-            int len = red.read();
+            String line = red.readLine();
+            int len = Integer.parseInt(line);
             ret = new Fragen_Antworten[len];
             Fragen_Antworten f = new Fragen_Antworten();
-            for(int i = 0; i<len*2;i++){
-                 if(i%2==1){
+            int max = len*2;
+            int count = 0;
+            for(int i = 1; i<=max;i++){
+                 if(i%2 == 1){
                      f.setFrage(red.readLine());
                  }
                  else{
                      f.setAntwort(red.readLine());
-                     ret[i] = f;
+                     ret[count] = f;
+                     count++;
                  }
             }
         }

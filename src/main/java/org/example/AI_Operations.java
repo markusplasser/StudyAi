@@ -14,8 +14,8 @@ public class AI_Operations {
         return chat.generate(input);
     }
 
-    public String anz_Fragen(String input){
-        String ret = "Erstelle " + input + " Fragen zu dem nachfolgendem Infotext :" + input;
+    public String anz_Fragen(int anz,String input){
+        String ret = "Erstelle " + anz + " Fragen zu dem nachfolgendem Infotext :" + input;
         return input_Output(ret);
     }
 
