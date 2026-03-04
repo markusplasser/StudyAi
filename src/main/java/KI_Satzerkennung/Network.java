@@ -5,6 +5,8 @@ public class Network {
     private double[][][] weigths;
     private double[][] bias;
     private double[][] output;
+    private double[][] output_derivetive;
+    private double[][] err_signal;
 
     private int NETWORK_SIZE;
     private int[] NETWORK_LAYER_SIZE;
@@ -20,10 +22,14 @@ public class Network {
         weigths = new double[NETWORK_SIZE][][];
         bias = new double[NETWORK_SIZE][];
         output = new double[NETWORK_SIZE][];
+        err_signal = new double[NETWORK_SIZE][];
+        output_derivetive = new double[NETWORK_SIZE][];
 
         for(int i = 0; i < NETWORK_SIZE; i++) {
             bias[i] = new double[NETWORK_LAYER_SIZE[i]];
             output[i] = new double[NETWORK_LAYER_SIZE[i]];
+            err_signal[i] = new double[NETWORK_LAYER_SIZE[i]];
+            output_derivetive[i] = new double[NETWORK_LAYER_SIZE[i]];
             if(i > 0){
                 weigths[i] = createRandomArr(NETWORK_LAYER_SIZE[i],NETWORK_LAYER_SIZE[i-1],-0.5,0.5);
             }
@@ -51,16 +57,29 @@ public class Network {
                     sum += weigths[layer][neuron][prevNeuron] * output[layer][prevNeuron];
                 }
                 output[layer][neuron] = sum;
+                output_derivetive[layer][neuron] = output[layer][neuron] * (1-output[layer][neuron]);
             }
         }
         return output[NETWORK_SIZE-1];
     }
 
 
+    /**
+     *Calc. the Cost func
+     * Alles wurde selber geschrieben und auch verstanden.
+     * Natürlich nicht selber erfunden!!
+     * Dieses Video erklärt alle schritte Mathematisch die umsetzung in Java ist selber gemacht!!
+     * https://www.youtube.com/watch?v=tIeHLnjs5U8
+     * @param traget
+     * @return
+     */
+    public double[][] backpropagation(double[] traget){
+        for(int neuron = 0; neuron < OUTPUT_LAYER_SIZE; neuron++){
+            err_signal[NETWORK_SIZE-1][neuron] = (output[NETWORK_SIZE-1][neuron] - traget[neuron])
+                    * output_derivetive[NETWORK_SIZE-1][neuron];
+        }
 
-
-    public double[][] backpropagation(){
-
+        return err_signal;
     }
 
     /**
