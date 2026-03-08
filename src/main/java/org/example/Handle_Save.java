@@ -5,74 +5,79 @@ import okio.Buffer;
 import java.io.*;
 
 public class Handle_Save {
+    public final String path = System.getProperty("user.dir");
     private Fragen_Antworten[] arr;
     private String filename;
 
 
-    public Handle_Save(String filename, Fragen_Antworten[] content) {
+    public Handle_Save(Fragen_Antworten[] arr,String filename) {
         this.filename = filename;
-        arr = content;
+        this.arr = arr;
     }
 
     /**
-     * übernimmt das Speichern von den einzelnen Fragen und Antworten
+     * übernimmt das Speichern von ganzen Fargen_Antworten arrays
+     * Speichert am Anfang die Anzahl der Fragen + die Anz der Antwortmöglichkeiten
      * StudyAi\save\filename - Speicherort
      */
     public void save() {
         if (!create_default_saveFolder()) {
             System.out.println("Fehler beim erzeugen des save folders");
         }
-        String path = Oberflaeche.path + "\\save\\" + filename + ".txt";
+        String userpath =  path + "\\save\\" + filename + ".txt";
 
-        try (BufferedWriter out = new BufferedWriter(new FileWriter(path))) {
-            out.write(String.valueOf(arr.length));
-            out.newLine();
-            for (int i = 0; i < arr.length; i++) {
-                out.write(arr[i].getFrage());
-                out.newLine();
-                out.write(arr[i].getAntwort());
-                out.newLine();
+        try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(userpath)))) {
+            dos.writeInt(arr.length);
+            dos.writeInt(arr[0].getContent().length);
+            for(int i=0;i<arr.length;i++) {
+                dos.writeUTF(arr[i].getFrage());
+                for(int j = 0; j<arr[i].getContent().length;j++) {
+                    dos.writeUTF(arr[i].getContent()[j]);
+                    dos.writeBoolean(arr[i].getLoesung()[j]);
+                }
             }
         } catch (IOException e) {
-            System.out.println("Fehler beim erzeugen der txt Datei:" + path);
+            System.out.println("Fehler beim erzeugen der txt Datei:" + userpath);
         }
     }
 
+    /**
+     * Einlesen von ganzen Datein die um richtigen Vormat abgespeichert worden sind
+     * Gibt den ganzen Inhalt der Datei in einem Fragen-Antworten array zurück
+     * @param filename
+     * @return
+     */
     public Fragen_Antworten[] read(String filename){
         if(!check_file_exist(filename)){
             System.out.println("Das File das eingelesen werden soll gibt es nicht");
         }
 
-        String path = Oberflaeche.path + "\\save\\" + filename + ".txt";
+        String userpath = path + "\\save\\" + filename + ".txt";
 
         Fragen_Antworten[] ret = new Fragen_Antworten[0];
-        try(BufferedReader red  = new BufferedReader(new FileReader(path))){
-            String line = red.readLine();
-            int len = Integer.parseInt(line);
-            ret = new Fragen_Antworten[len];
-            Fragen_Antworten f = new Fragen_Antworten();
-            int max = len*2;
-            int count = 0;
-            for(int i = 1; i<=max;i++){
-                 if(i%2 == 1){
-                     f.setFrage(red.readLine());
-                 }
-                 else{
-                     f.setAntwort(red.readLine());
-                     ret[count] = f;
-                     count++;
-                 }
+        try(DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(userpath)))) {
+            int length = dis.readInt();
+            int anz_fragen = dis.readInt();
+            for(int i=0;i<length;i++) {
+                String frage =  dis.readUTF();
+                String[] content = new String[anz_fragen];
+                boolean[] bool = new boolean[anz_fragen];
+                for(int j = 0; j < anz_fragen;j++){
+                    content[j] = dis.readUTF();
+                    bool[j] = dis.readBoolean();
+                }
+                ret[i] = new Fragen_Antworten(frage,content,bool);
             }
         }
         catch(IOException e){
-            System.out.println("Fehlerö beim einlesen aus der Datei:" + path);
+            System.out.println("Fehlerö beim einlesen aus der Datei:" + userpath);
         }
         return ret;
     }
 
     public boolean check_file_exist(String filname){
-        String path = Oberflaeche.path + "\\save\\" + filname + ".txt";
-        File f = new File(path);
+        String userpath = path + "\\save\\" + filname + ".txt";
+        File f = new File(userpath);
         if(f.exists()){
             return true;
         }
@@ -81,12 +86,12 @@ public class Handle_Save {
 
     /**
      * Erzeugt einen save Folder in StudyAi
-     * Der Folder heißt save
+     * Der Folder heißt "save"
      * @return
      */
     private boolean create_default_saveFolder(){
-        String path = Oberflaeche.path + "\\save";
-        File f = new File(path);
+        String userpath = path + "\\save";
+        File f = new File(userpath);
         return f.mkdir();
     }
 

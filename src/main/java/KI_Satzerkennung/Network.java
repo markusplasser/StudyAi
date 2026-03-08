@@ -71,7 +71,7 @@ public class Network {
      * Dieses Video erklärt alle schritte Mathematisch die umsetzung in Java ist selber gemacht!!
      * https://www.youtube.com/watch?v=tIeHLnjs5U8
      * @param traget
-     * @return
+     * @return err_signal
      */
     public double[][] backpropagation(double[] traget){
         for(int neuron = 0; neuron < OUTPUT_LAYER_SIZE; neuron++){

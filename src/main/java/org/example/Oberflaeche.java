@@ -1,31 +1,34 @@
 package org.example;
+import javafx.scene.paint.Paint;
+import javafx.application.Application;
+import javafx.scene.Group;
+import javafx.scene.Parent;
+import javafx.scene.control.Button;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.*;
+import javafx.stage.*;
 
-import javax.swing.*;
-import java.io.File;
+import java.awt.*;
 
-public class Oberflaeche
+public class Oberflaeche extends Application
 {
-    public static String path;
-
-    public void start(){
-        init();
-        create_deafault_Folder();
+    public void handle(String[] args){
+        launch(args);
     }
 
-    private boolean create_deafault_Folder(){
-        String path = System.getProperty("user.home");
-        path += "\\StudyAi";
-        File f = new File(path);
-        this.path = path;
-        return f.mkdir();
-    }
+    @Override
+    public void start(Stage stage) throws Exception {
+        Group root = new Group();
+        Scene scene = new Scene(root);
+        stage.setTitle("StudyAI");
 
-    public void init(){
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800,600);
-        frame.setResizable(true);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+        stage.setScene(scene);
+        stage.show();
+
     }
 }
