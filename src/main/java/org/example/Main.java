@@ -1,16 +1,13 @@
 package org.example;
 
-import javax.swing.*;
-import java.util.ArrayList;
+import GUI.Aplication;
+import GUI.Oberflaeche;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) {
-        Oberflaeche o = new Oberflaeche();
-        o.handle(args);
-
-
+        Aplication.main(args);
 
 
 //        AI_Operations a = new AI_Operations();
