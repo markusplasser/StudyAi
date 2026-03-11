@@ -38,7 +38,6 @@ public class Controller implements EventHandler<Event> {
         Object source = event.getSource();
 
         if(source == o.submit){
-            System.out.println("Funktioniert");
             String anz = o.anz.getText();
             String quell = o.anz.getText();
             if(anz == null || quell == null){
