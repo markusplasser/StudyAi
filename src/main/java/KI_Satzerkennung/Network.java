@@ -102,6 +102,7 @@ public class Network {
                 // Die Schuld ist die Summe aller weights die von dem Neuron ausgehen * ihre Wichtigkeit
                 //Die Schuld von dem Neuron = summe der Ganzen schuld * die wichtigkeit die es hatte
                 this.err_signal[layer][neuron] = sum* output_derivative[layer][neuron];
+                //git test
             }
         }
         return err_signal;
