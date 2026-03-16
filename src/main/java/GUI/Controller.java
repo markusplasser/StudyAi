@@ -41,7 +41,7 @@ public class Controller implements EventHandler<Event> {
             String anz = o.anz.getText();
             String quell = o.anz.getText();
             if(anz == null || quell == null){
-
+                return;
             }
             if(anz.isEmpty()){
                 o.anz.setText("BITTE AUSFÜLLEN");
