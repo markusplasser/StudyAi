@@ -20,15 +20,15 @@ public class Handle_Save {
      * Speichert am Anfang die Anzahl der Fragen + die Anz der Antwortmöglichkeiten
      * StudyAi\save\filename - Speicherort
      */
-    public void save() {
+    public void save(int anzAnwortmöglichkeiten) {
         if (!create_default_saveFolder()) {
             System.out.println("Fehler beim erzeugen des save folders");
         }
         String userpath =  path + "\\save\\" + filename + ".txt";
 
         try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(userpath)))) {
-            dos.writeInt(arr.length);
-            dos.writeInt(arr[0].getContent().length);
+            dos.writeInt(arr.length); //wie viele Fragen Insgesamt
+            dos.writeInt(arr[0].getContent().length); //wie viele Antwormöglichkeiten es pro frage gibt - kann sich nur von Datei zu Datei ändern
             for(int i=0;i<arr.length;i++) {
                 dos.writeUTF(arr[i].getFrage());
                 for(int j = 0; j<arr[i].getContent().length;j++) {
@@ -56,8 +56,8 @@ public class Handle_Save {
 
         Fragen_Antworten[] ret = new Fragen_Antworten[0];
         try(DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(userpath)))) {
-            int length = dis.readInt();
-            int anz_fragen = dis.readInt();
+            int length = dis.readInt(); // wie viele Fragen es insgesamt zum einlesen gibt
+            int anz_fragen = dis.readInt(); // wie viele Antwortmöglichkeiten es gibt - kann sich nur von Datei zu Datei ändern
             for(int i=0;i<length;i++) {
                 String frage =  dis.readUTF();
                 String[] content = new String[anz_fragen];

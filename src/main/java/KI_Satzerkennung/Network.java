@@ -1,9 +1,15 @@
 package KI_Satzerkennung;
 import java.util.Random;
+import parser.*;
+
+import java.util.Arrays;
+
+
+
 
 public class Network {
     //indexing weight : weigths[layer][neuron][prev neuron]
-    private double[][][] weigths;
+    private double[][][] weights;
     private double[][] bias;
     private double[][] output;
     private double[][] output_derivative;
@@ -20,7 +26,7 @@ public class Network {
         INPUT_LAYER_SIZE = NETWORK_LAYER_SIZE[0];
         OUTPUT_LAYER_SIZE = NETWORK_LAYER_SIZE[NETWORK_SIZE-1];
 
-        weigths = new double[NETWORK_SIZE][][];
+        weights = new double[NETWORK_SIZE][][];
         bias = new double[NETWORK_SIZE][];
         output = new double[NETWORK_SIZE][];
         err_signal = new double[NETWORK_SIZE][];
@@ -32,7 +38,7 @@ public class Network {
             err_signal[i] = new double[NETWORK_LAYER_SIZE[i]];
             output_derivative[i] = new double[NETWORK_LAYER_SIZE[i]];
             if(i > 0){
-                weigths[i] = createRandomArr(NETWORK_LAYER_SIZE[i],NETWORK_LAYER_SIZE[i-1],-0.5,0.5);
+                weights[i] = createRandomArr(NETWORK_LAYER_SIZE[i],NETWORK_LAYER_SIZE[i-1],-0.5,0.5);
             }
         }
     }
@@ -55,7 +61,7 @@ public class Network {
                 double sum = bias[layer][neuron];
 
                 for(int prevNeuron = 0; prevNeuron < NETWORK_LAYER_SIZE[layer]; prevNeuron++){
-                    sum += weigths[layer][neuron][prevNeuron] * output[layer][prevNeuron];
+                    sum += weights[layer][neuron][prevNeuron] * output[layer][prevNeuron];
                 }
                 output[layer][neuron] = sum;
                 output_derivative[layer][neuron] = output[layer][neuron] * (1-output[layer][neuron]);
@@ -82,7 +88,8 @@ public class Network {
          * output_derivetive -> wie stark ändert sich das Ergebnis bei kleinen Änderungen
          * je kleiner desto weniger hat es einfluss auf die änderung
          */
-        for(int neuron = 0; neuron < OUTPUT_LAYER_SIZE; neuron++){
+        for(int neuron = 0; neuron < OUTPUT_LAYER_SIZE; neuron++)
+        {
             err_signal[NETWORK_SIZE-1][neuron] = (output[NETWORK_SIZE-1][neuron] - traget[neuron])
                     * output_derivative[NETWORK_SIZE-1][neuron];
         }
@@ -97,12 +104,11 @@ public class Network {
                 double sum = 0;
                 for(int nextneuron = 0; nextneuron < NETWORK_LAYER_SIZE[layer+1]; nextneuron++){
                     // Die Schuld ist die Summe aller weights die von dem Neuron ausgehen * ihre Wichtigkeit
-                    sum += weigths[layer][nextneuron][neuron] * err_signal[layer+1][nextneuron];
+                    sum += weights[layer][nextneuron][neuron] * err_signal[layer+1][nextneuron];
                 }
                 // Die Schuld ist die Summe aller weights die von dem Neuron ausgehen * ihre Wichtigkeit
                 //Die Schuld von dem Neuron = summe der Ganzen schuld * die wichtigkeit die es hatte
                 this.err_signal[layer][neuron] = sum* output_derivative[layer][neuron];
-                //git test
             }
         }
         return err_signal;
@@ -160,5 +166,59 @@ public class Network {
             arr[i] = r.nextDouble(lower_bound,upper_bound);
         }
         return arr;
+    }
+
+    public void saveNetwork(String path)throws Exception{
+        Parser p = new Parser();
+        p.create(path);
+        Node root = p.getContent();
+        Node netw = new Node("Network");
+        Node ly = new Node("Layers");
+        netw.addAttribute(new Attribute("sizes", Arrays.toString(this.NETWORK_LAYER_SIZE)));
+        netw.addChild(ly);
+        root.addChild(netw);
+        for (int layer = 1; layer < this.NETWORK_SIZE; layer++) {
+
+            Node c = new Node("" + layer);
+            ly.addChild(c);
+            Node w = new Node("weights");
+            Node b = new Node("biases");
+            c.addChild(w);
+            c.addChild(b);
+
+            b.addAttribute("values", Arrays.toString(this.bias[layer]));
+
+            for (int we = 0; we < this.weights[layer].length; we++) {
+
+                w.addAttribute("" + we, Arrays.toString(weights[layer][we]));
+            }
+        }
+        p.close();
+
+    }
+    public static Network loadNetwork(String path)throws Exception{
+        Parser p = new Parser();
+
+        p.load(path);
+        String sizes = p.getValue(new String[] { "Network" }, "sizes");
+        int[] si = ParserTools.parseIntArray(sizes);
+        Network ne = new Network(si);
+
+        for (int i = 1; i < ne.NETWORK_SIZE; i++) {
+            String biases = p.getValue(new String[] { "Network", "Layers", new String(i + ""), "biases" }, "values");
+            double[] bias = ParserTools.parseDoubleArray(biases);
+            ne.bias[i] = bias;
+
+            for(int n = 0; n < ne.NETWORK_LAYER_SIZE[i]; n++){
+
+                String current = p.getValue(new String[] { "Network", "Layers", new String(i + ""), "weights" }, ""+n);
+                double[] val = ParserTools.parseDoubleArray(current);
+
+                ne.weights[i][n] = val;
+            }
+        }
+        p.close();
+        return ne;
+
     }
 }
