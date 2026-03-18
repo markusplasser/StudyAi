@@ -6,7 +6,7 @@ public class FindAnswersAndQuestions {
 
     Network network;
     public Fragen_Antworten[] find(String AIAnswertxt, int anzFragen, int AntwortenProFrage){
-        try(){
+        try{
             network = Network.loadNetwork("res/save.txt");
         }
         catch (Exception e){

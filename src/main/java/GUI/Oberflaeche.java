@@ -2,7 +2,7 @@ package GUI;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCombination;
@@ -17,15 +17,19 @@ public class Oberflaeche extends Stage {
     final private Controller controller;
 
     final MenuItem menuCloseMI;
-    public Button submit;
+    public Button submit, antwort1, antwort2, antwort3;
     public TextField quelltxt, anz;
+
+    final Label frage;
+    public int width = 1000;
+    public int height = 600;
 
     public Oberflaeche(){
         controller = new Controller(this);
         BorderPane root = new BorderPane();
 
         VBox fragenErstellen = new VBox(new Label("Erzeuege Fragen"));
-        VBox fragenAbfragen = new VBox(new Label("Fargen abfragen"));
+        VBox fragenAbfragen = new VBox(new Label("Fragen abfragen"));
 
 
         MenuItem itemerstellen = new MenuItem("Fragen erstellen");
@@ -51,6 +55,9 @@ public class Oberflaeche extends Stage {
         root.setTop(menubar);
         root.setCenter(fragenErstellen);
 
+        /**
+         * Fragen erstellen
+         */
         quelltxt = new TextField();
         quelltxt.setPromptText("Quelltext");
 
@@ -62,9 +69,28 @@ public class Oberflaeche extends Stage {
 
         fragenErstellen.getChildren().addAll(quelltxt,anz,submit);
 
+        /**
+         * Fragen abfragen
+         */
+        frage = new Label();
+        frage.setText("Beispiel Frage die einfach nur da ist um ein Beispiel zu sein ?");
+        frage.setMinHeight(70);
+
+        antwort1 = new Button("Antwortmoeglichkeit 1");
+        antwort2 = new Button("Antwortmoeglichkeit 2");
+        antwort3 = new Button("Antwortmoeglichkeit 3");
+
+        antwort1.setMaxWidth(width/3*2);
+        antwort2.setMaxWidth(width/3*2);
+        antwort3.setMaxWidth(width/3*2);
+        antwort1.setMinHeight(70);
+        antwort2.setMinHeight(70);
+        antwort3.setMinHeight(70);
+        fragenAbfragen.setAlignment(Pos.CENTER);
+        fragenAbfragen.getChildren().addAll(frage, antwort1, antwort2, antwort3);
 
 
-        Scene scene = new Scene(root,1000,600);
+        Scene scene = new Scene(root,width,height);
         setScene(scene);
         show();
         scene.getWindow().sizeToScene();
