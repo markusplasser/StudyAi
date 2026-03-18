@@ -2,6 +2,7 @@ package KI_Satzerkennung;
 
 import org.example.Fragen_Antworten;
 
+
 public class FindAnswersAndQuestions {
 
     Network network;
@@ -37,6 +38,13 @@ public class FindAnswersAndQuestions {
     }
 
     public double[] runthroughNetwork(String txt){
+        Tokenizer tk = new Tokenizer(20);
+        int[] runnthrough = tk.encode(txt);
+        double[] lol = network.calculate(runnthrough);
 
+
+        return lol;
     }
+
+
 }

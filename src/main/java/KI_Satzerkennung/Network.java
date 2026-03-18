@@ -46,7 +46,6 @@ public class Network {
 
 
     /**
-     * -Markus
      * Feedforward process...
      * SUM = bias + (weight[layer][neuron][prevNeuron] * output[layer][prevNeuron] + weight[layer][neuron][prevNeuron+1])
      * @param input
@@ -63,7 +62,7 @@ public class Network {
                 for(int prevNeuron = 0; prevNeuron < NETWORK_LAYER_SIZE[layer]; prevNeuron++){
                     sum += weights[layer][neuron][prevNeuron] * output[layer][prevNeuron];
                 }
-                output[layer][neuron] = sum;
+                output[layer][neuron] = sigmoid(sum);
                 output_derivative[layer][neuron] = output[layer][neuron] * (1-output[layer][neuron]);
             }
         }
@@ -115,7 +114,24 @@ public class Network {
     }
 
     public void update(double eta){
-
+        for(int layer = 1; layer < NETWORK_SIZE-1; layer++){
+            for(int neuron = 0; neuron < NETWORK_LAYER_SIZE[layer]; neuron++){
+                for(int prevneuron = 0;  prevneuron < NETWORK_LAYER_SIZE[layer-1]; prevneuron++){
+                    /**
+                     * -eta -> wollen den Fehler minimieren -> zum minimum der funk.
+                     * output[layer-1][prevneuron] -> falls der output 0 war hat der weight keine Schuld am Fehler
+                     * err_signal[layer][neuron] -> der Fehler dieses Neurons -> großer/kleiner Fehler viel/wenig anpassen
+                     */
+                    double delta = - eta * output[layer-1][prevneuron]* err_signal[layer][neuron];
+                    weights[layer][neuron][prevneuron] += delta;
+                }
+                /**
+                 * Das selbe wie bei den weights nur dass der bias addiert wird und desshalb immer schuld am Fehler hat
+                 */
+                double delta = -eta * err_signal[layer][neuron];
+                bias[layer][neuron] += delta;
+            }
+        }
     }
 
     /**
@@ -129,7 +145,6 @@ public class Network {
 
 
     /**
-     * -Markus
      * Creates a new double[size][prevsize] and set values between lower_bound and upper_bound
      * @param size
      * @param prevSize
@@ -152,7 +167,6 @@ public class Network {
 
 
     /**
-     * -Markus
      * Creates a new double arr with val between the parms
      * @param size
      * @param lower_bound
@@ -168,6 +182,7 @@ public class Network {
         return arr;
     }
 
+    //save Methoden nicht selber geschrieben
     public void saveNetwork(String path)throws Exception{
         Parser p = new Parser();
         p.create(path);
