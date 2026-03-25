@@ -37,8 +37,8 @@ public class Tokenizer {
     /**
      * Verwandelt einen Satz in ein fixes Zahlen-Array für das Netzwerk.
      */
-    public int[] encode(String text) {
-        int[] vector = new int[maxLength];
+    public double[] encode(String text) {
+        double[] vector = new double[maxLength];
         String[] tokens = simpleSplit(text);
 
         for (int i = 0; i < maxLength; i++) {

@@ -51,7 +51,7 @@ public class Network {
      * @param input
      * @return double[]
      */
-    public double[] calculate(int... input){
+    public double[] calculate(double... input){
         if(input.length != INPUT_LAYER_SIZE){
             return null;
         }

@@ -39,7 +39,7 @@ public class FindAnswersAndQuestions {
 
     public double[] runthroughNetwork(String txt){
         Tokenizer tk = new Tokenizer(20);
-        int[] runnthrough = tk.encode(txt);
+        double[] runnthrough = tk.encode(txt);
         double[] lol = network.calculate(runnthrough);
 
 

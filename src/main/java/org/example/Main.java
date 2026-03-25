@@ -2,12 +2,16 @@ package org.example;
 
 import GUI.Aplication;
 import GUI.Oberflaeche;
+import KI_Satzerkennung.TrainWithTrainSet;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) {
-        Aplication.main(args);
+        //Aplication.main(args);
+        TrainWithTrainSet train = new TrainWithTrainSet();
+        train.test();
+
 
 
 //        AI_Operations a = new AI_Operations();
