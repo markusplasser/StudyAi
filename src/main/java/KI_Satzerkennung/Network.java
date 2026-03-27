@@ -15,6 +15,7 @@ public class Network {
     private double[][] output_derivative;
     private double[][] err_signal;
 
+    private static final double eta = 0.3;
     private int NETWORK_SIZE;
     private int[] NETWORK_LAYER_SIZE;
     private int INPUT_LAYER_SIZE;
@@ -111,6 +112,30 @@ public class Network {
             }
         }
         return err_signal;
+    }
+
+    public void train(TrainSet trainSet, int batchsize, int anz){
+        for(int i = 0; i < anz; i++){
+            TrainSet batch = trainSet.extractBatch(batchsize);
+            for(int j = 0; j < batchsize; j++){
+                train(batch.getInput(j),batch.getTarget(j));
+            }
+        }
+    }
+
+    private void train(double[] input, double[] target){
+        if(input.length != INPUT_LAYER_SIZE || target.length != OUTPUT_LAYER_SIZE){return;}
+        calculate(input);
+        backpropagation(target);
+        update(eta);
+    }
+
+    public double[] checkSentence(double[] input){
+        calculate(input);
+        if(output[NETWORK_SIZE-1][0] < output[NETWORK_SIZE-1][1]){
+            return output[NETWORK_SIZE-1];
+        }
+        return output[NETWORK_SIZE-1];
     }
 
     public void update(double eta){

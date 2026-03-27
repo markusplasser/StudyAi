@@ -1,18 +1,78 @@
 package KI_Satzerkennung;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.javafx.css.parser.Token;
+
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 public class TrainWithTrainSet {
+    public static void main(String[] args){
+        TrainWithTrainSet train = new TrainWithTrainSet();
+        //train.trainWithdata();
+        train.runSentenceThrough("Ich habe eine Kappe an.");
+
+    }
+
+    public void trainWithdata(){
+        try{
+            int[] start = {20,10,2};
+            Network network = Network.loadNetwork("res/save.txt");
+            TrainSet set = createSet(10000);
+
+            traindata(network,set,1000,250,200,false);
+            network.saveNetwork("res/save.txt");
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException(e);
+
+        }
+    }
+
+
+
+    public void runSentenceThrough(String txt)  {
+        Tokenizer tk = new Tokenizer(20);
+        try {
+            Network network = Network.loadNetwork("res/save.txt");
+            double[] input = tk.encode(txt);
+            System.out.println(Arrays.toString(network.checkSentence(input)));
+            System.out.println(": False->Question/True->Answer");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
     public TrainSet createSet(int size){
         int setsize = size;
         TrainSet trainSet = new TrainSet(20,2);
         fillTrainSetQA(trainSet,setsize);
         return trainSet;
     }
+
+
+
+    public void traindata(Network net, TrainSet trainSet,int epoch ,int batchsize, int anz,boolean checkAnswers){
+        for(int i = 0; i < epoch; i++){
+            net.train(trainSet,batchsize,anz);
+            if(i%100 == 0 && checkAnswers){
+
+            }
+            try{
+                net.saveNetwork("res/save.txt");
+            }catch(Exception e){
+                throw new RuntimeException(e);
+            }
+        }
+
+
+    }
+
+
 
     public void fillTrainSetQA(TrainSet trainSet, int size){
         try {

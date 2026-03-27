@@ -9,8 +9,8 @@ import KI_Satzerkennung.TrainWithTrainSet;
 public class Main {
     public static void main(String[] args) {
         //Aplication.main(args);
-        TrainWithTrainSet train = new TrainWithTrainSet();
-        train.test();
+//        TrainWithTrainSet train = new TrainWithTrainSet();
+//        train.test();
 
 
 
