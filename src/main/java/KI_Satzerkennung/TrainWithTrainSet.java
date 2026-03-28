@@ -13,18 +13,18 @@ public class TrainWithTrainSet {
     public static void main(String[] args){
         TrainWithTrainSet train = new TrainWithTrainSet();
         //train.trainWithdata();
-        train.runSentenceThrough("Ich habe eine Kappe an.");
+        train.runSentenceThrough("Was bezeichnete die Times, nachdem sie 1920 antisemitische Leitartikel veröffentlicht hatte, als Juden?");
 
     }
 
     public void trainWithdata(){
         try{
-            int[] start = {20,10,2};
-            Network network = Network.loadNetwork("res/save.txt");
-            TrainSet set = createSet(10000);
+            int[] start = {19,10,2};
+            Network network = Network.loadNetwork("res/save19.txt");
+            TrainSet set = createSet(60000);
 
-            traindata(network,set,1000,250,200,false);
-            network.saveNetwork("res/save.txt");
+            traindata(network,set,3000,70,500,true);
+            network.saveNetwork("res/save19.txt");
         }catch (Exception e){
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -35,22 +35,29 @@ public class TrainWithTrainSet {
 
 
     public void runSentenceThrough(String txt)  {
-        Tokenizer tk = new Tokenizer(20);
+        Tokenizer tk = new Tokenizer();
         try {
-            Network network = Network.loadNetwork("res/save.txt");
-            double[] input = tk.encode(txt);
-            System.out.println(Arrays.toString(network.checkSentence(input)));
-            System.out.println(": False->Question/True->Answer");
+            Network network = Network.loadNetwork("res/save19.txt");
+            String[] tmp = new String[1];
+            tmp[0] = txt;
+            double[][] input = tk.tokenizeBatch(tmp,19);
+            System.out.println(Arrays.toString(input[0]));
+            double[] ergebnis =network.checkSentence(input[0]);
+            System.out.println(txt);
+            System.out.println("Question: " + ergebnis[0]);
+            System.out.println("Statement: " + ergebnis[1]);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
 
     }
+
+
     public TrainSet createSet(int size){
-        int setsize = size;
-        TrainSet trainSet = new TrainSet(20,2);
-        fillTrainSetQA(trainSet,setsize);
+
+        TrainSet trainSet = new TrainSet(19,2);
+        trainSet = fillTrainSetQA(trainSet,size);
         return trainSet;
     }
 
@@ -60,21 +67,19 @@ public class TrainWithTrainSet {
         for(int i = 0; i < epoch; i++){
             net.train(trainSet,batchsize,anz);
             if(i%100 == 0 && checkAnswers){
-
-            }
-            try{
-                net.saveNetwork("res/save.txt");
-            }catch(Exception e){
-                throw new RuntimeException(e);
+                System.out.println(i+":Runden");
+//                try{
+//                    net.saveNetwork("res/save19.txt");
+//                }catch(Exception e){
+//                    throw new RuntimeException(e);
+//                }
             }
         }
-
-
     }
 
 
 
-    public void fillTrainSetQA(TrainSet trainSet, int size){
+    public TrainSet fillTrainSetQA(TrainSet trainSet, int size){
         try {
             File jsonFile = new File("Translated_German_SQuAD-Train-v1.1.json");
             ObjectMapper mapper = new ObjectMapper();
@@ -100,27 +105,38 @@ public class TrainWithTrainSet {
                 }
             }
 
-            System.out.println("Geladene Fragen: " + allQuestions.size());
-            System.out.println("Geladene Antworten: " + allAnswers.size());
+
 
             Random r =  new Random();
-            Tokenizer tk = new Tokenizer(20);
-            for(int i = 0; i < size/2; i = i+2)
-            {
-                double[] input = tk.encode(allQuestions.get(r.nextInt(allQuestions.size())));
-                double[] target = {1,0};
-                double[] input1 = tk.encode(allAnswers.get(r.nextInt(allAnswers.size())));
-                double[] target1 = {0,1};
+            Tokenizer tk = new Tokenizer();
 
-                trainSet.add(input,target);
-                trainSet.add(input1,target1);
+            for(int i = 0 ;i<allAnswers.size();i++){
+                tk.train(allQuestions.get(i),5000,2);
+                tk.train(allAnswers.get(i),5000,2);
             }
 
+            for(int i = 0; i < 10; i++){
+                System.out.println(allQuestions.get(r.nextInt(allAnswers.size())));
+            }
 
+            String[] qu = allQuestions.toArray(new String[0]);
+            double[][] batch = tk.tokenizeBatch(qu,19);
+            String[] an = allAnswers.toArray(new String[0]);
+            double[][] batch2 = tk.tokenizeBatch(an,19);
+            double[] target = {1,0};
+            double[] target1 = {0,1};
+            for(int i = 0; i < size/2; i = i+2)
+            {
+                trainSet.add(batch[i],target);
+                trainSet.add(batch2[i],target1);
+            }
+
+            return trainSet;
 
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 }

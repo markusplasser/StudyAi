@@ -38,8 +38,8 @@ public class FindAnswersAndQuestions {
     }
 
     public double[] runthroughNetwork(String txt){
-        Tokenizer tk = new Tokenizer(20);
-        double[] runnthrough = tk.encode(txt);
+        Tokenizer tk = new Tokenizer();
+        double[] runnthrough = tk.tokenize(txt);
         double[] lol = network.calculate(runnthrough);
 
 

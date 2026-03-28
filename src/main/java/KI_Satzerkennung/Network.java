@@ -34,7 +34,7 @@ public class Network {
         output_derivative = new double[NETWORK_SIZE][];
 
         for(int i = 0; i < NETWORK_SIZE; i++) {
-            bias[i] = new double[NETWORK_LAYER_SIZE[i]];
+            bias[i] = createRandomArr(NETWORK_LAYER_SIZE[i],-2.5,2.7);
             output[i] = new double[NETWORK_LAYER_SIZE[i]];
             err_signal[i] = new double[NETWORK_LAYER_SIZE[i]];
             output_derivative[i] = new double[NETWORK_LAYER_SIZE[i]];
@@ -56,12 +56,12 @@ public class Network {
         if(input.length != INPUT_LAYER_SIZE){
             return null;
         }
+        output[0] = input;
         for(int layer = 1; layer < NETWORK_SIZE; layer++){
             for(int neuron = 0; neuron < NETWORK_LAYER_SIZE[layer]; neuron++){
                 double sum = bias[layer][neuron];
-
-                for(int prevNeuron = 0; prevNeuron < NETWORK_LAYER_SIZE[layer]; prevNeuron++){
-                    sum += weights[layer][neuron][prevNeuron] * output[layer][prevNeuron];
+                for(int prevNeuron = 0; prevNeuron < NETWORK_LAYER_SIZE[layer-1]; prevNeuron++){
+                    sum += weights[layer][neuron][prevNeuron] * output[layer-1][prevNeuron];
                 }
                 output[layer][neuron] = sigmoid(sum);
                 output_derivative[layer][neuron] = output[layer][neuron] * (1-output[layer][neuron]);
@@ -80,7 +80,7 @@ public class Network {
      * @param traget
      * @return err_signal
      */
-    public double[][] backpropagation(double[] traget){
+    public void backpropagation(double[] traget){
         /**
          * err_signal = (outputVal - target) * output_derivetive[][]
          *
@@ -104,14 +104,13 @@ public class Network {
                 double sum = 0;
                 for(int nextneuron = 0; nextneuron < NETWORK_LAYER_SIZE[layer+1]; nextneuron++){
                     // Die Schuld ist die Summe aller weights die von dem Neuron ausgehen * ihre Wichtigkeit
-                    sum += weights[layer][nextneuron][neuron] * err_signal[layer+1][nextneuron];
+                    sum += weights[layer+1][nextneuron][neuron] * err_signal[layer+1][nextneuron];
                 }
                 // Die Schuld ist die Summe aller weights die von dem Neuron ausgehen * ihre Wichtigkeit
                 //Die Schuld von dem Neuron = summe der Ganzen schuld * die wichtigkeit die es hatte
                 this.err_signal[layer][neuron] = sum* output_derivative[layer][neuron];
             }
         }
-        return err_signal;
     }
 
     public void train(TrainSet trainSet, int batchsize, int anz){
@@ -119,6 +118,7 @@ public class Network {
             TrainSet batch = trainSet.extractBatch(batchsize);
             for(int j = 0; j < batchsize; j++){
                 train(batch.getInput(j),batch.getTarget(j));
+                //System.out.println(Arrays.toString(batch.getInput(j)) + "\n" + Arrays.toString(batch.getTarget(j)));
             }
         }
     }
@@ -131,15 +131,11 @@ public class Network {
     }
 
     public double[] checkSentence(double[] input){
-        calculate(input);
-        if(output[NETWORK_SIZE-1][0] < output[NETWORK_SIZE-1][1]){
-            return output[NETWORK_SIZE-1];
-        }
-        return output[NETWORK_SIZE-1];
+        return calculate(input);
     }
 
     public void update(double eta){
-        for(int layer = 1; layer < NETWORK_SIZE-1; layer++){
+        for(int layer = 1; layer < NETWORK_SIZE; layer++){
             for(int neuron = 0; neuron < NETWORK_LAYER_SIZE[layer]; neuron++){
                 for(int prevneuron = 0;  prevneuron < NETWORK_LAYER_SIZE[layer-1]; prevneuron++){
                     /**
