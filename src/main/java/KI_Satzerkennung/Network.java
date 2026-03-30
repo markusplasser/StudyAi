@@ -230,7 +230,6 @@ public class Network {
             }
         }
         p.close();
-
     }
     public static Network loadNetwork(String path)throws Exception{
         Parser p = new Parser();

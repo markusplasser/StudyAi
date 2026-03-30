@@ -39,7 +39,10 @@ public class TrainSet {
                 i--;
             }
             else{
-                //Fehler warum
+                //Fehler warum es so lange nicht funktioniert hat
+                //falsch ret.add(getInput(r),getTarget(i)
+                //                                     |error
+                //falschen traget rausgeholt desshalb 50/50 ob satz oder Antwort
                 ret.add(getInput(r),getTarget(r));
                 check.add(r);
             }

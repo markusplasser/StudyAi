@@ -12,18 +12,18 @@ import java.util.Random;
 public class TrainWithTrainSet {
     public static void main(String[] args){
         TrainWithTrainSet train = new TrainWithTrainSet();
-        train.trainWithdata();
-        train.runSentenceThrough("Wie viele Touristen sind während der Saison 2006-07 in die Antarktis gefahren?");
+        //train.trainWithdata();
+        train.runSentenceThrough("Abraham Linkon war der erste Präsident der Vereinigten Staaten von Amerika.");
 
     }
 
     public void trainWithdata(){
         try{
             int[] start = {32, 64, 32, 2};
-            Network network = Network.loadNetwork("save32.txt");
+            Network network = Network.loadNetwork("res/save32.txt");
             TrainSet set = createSet(150000);
 
-            traindata(network,set,2000,250,100,true);
+            traindata(network,set,5000,300,100,true);
             network.saveNetwork("res/save32.txt");
         }catch (Exception e){
             e.printStackTrace();
@@ -146,10 +146,6 @@ public class TrainWithTrainSet {
             }
 
             System.out.println("TrainSet Größe: " + trainSet.size());
-            System.out.println("Beispiel Input[0]: " + Arrays.toString(trainSet.getInput(0)));
-            System.out.println("Beispiel Target[0]: " + Arrays.toString(trainSet.getTarget(0)));
-            System.out.println("Beispiel Input[1]: " + Arrays.toString(trainSet.getInput(1)));
-            System.out.println("Beispiel Target[1]: " + Arrays.toString(trainSet.getTarget(1)));
 
             return trainSet;
 
