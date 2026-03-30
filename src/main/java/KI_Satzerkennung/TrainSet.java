@@ -39,11 +39,16 @@ public class TrainSet {
                 i--;
             }
             else{
-                ret.add(getInput(r),getTarget(i));
+                //Fehler warum
+                ret.add(getInput(r),getTarget(r));
                 check.add(r);
             }
         }
         return ret;
+    }
+
+    public int size(){
+        return data.size();
     }
 
 }

@@ -1,5 +1,9 @@
 package KI_Satzerkennung;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.File;
 import java.util.*;
 import java.util.regex.*;
 import java.util.stream.*;
@@ -127,6 +131,28 @@ public class Tokenizer {
             wordFreqs = newWordFreqs;
         }
     }
+    public void saveTokenizer(String path) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> data = new HashMap<>();
+        data.put("vocab", vocab);
+        data.put("merges", merges);
+        mapper.writeValue(new File(path), data);
+    }
+
+    public void loadTokenizer(String path) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(new File(path));
+
+        Map<String, Integer> loadedVocab = new LinkedHashMap<>();
+        root.get("vocab").fields().forEachRemaining(e ->
+                loadedVocab.put(e.getKey(), e.getValue().asInt()));
+
+        Map<String, Integer> loadedMerges = new LinkedHashMap<>();
+        root.get("merges").fields().forEachRemaining(e ->
+                loadedMerges.put(e.getKey(), e.getValue().asInt()));
+
+        loadVocab(loadedVocab, loadedMerges);
+    }
 
     /**
      * Tokenisiert einen String und gibt Token-IDs als double[] zurück.
@@ -174,6 +200,15 @@ public class Tokenizer {
             tokens[i] = tokens[i] / maxId;
         }
         return tokens;
+    }
+
+    public double[] normalize(double[] tokenIds) {
+        double maxId = vocab.size() - 1;
+        double[] normalized = new double[tokenIds.length];
+        for (int i = 0; i < tokenIds.length; i++) {
+            normalized[i] = tokenIds[i] / maxId;
+        }
+        return normalized;
     }
 
     /**
