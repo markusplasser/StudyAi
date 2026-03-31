@@ -240,13 +240,13 @@ public class Network {
         Network ne = new Network(si);
 
         for (int i = 1; i < ne.NETWORK_SIZE; i++) {
-            String biases = p.getValue(new String[] { "Network", "Layers", new String(i + ""), "biases" }, "values");
+            String biases = p.getValue(new String[] { "Network", "Layers", i + "", "biases" }, "values");
             double[] bias = ParserTools.parseDoubleArray(biases);
             ne.bias[i] = bias;
 
             for(int n = 0; n < ne.NETWORK_LAYER_SIZE[i]; n++){
 
-                String current = p.getValue(new String[] { "Network", "Layers", new String(i + ""), "weights" }, ""+n);
+                String current = p.getValue(new String[] { "Network", "Layers", i + "", "weights" }, ""+n);
                 double[] val = ParserTools.parseDoubleArray(current);
 
                 ne.weights[i][n] = val;

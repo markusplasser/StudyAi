@@ -1,16 +1,17 @@
 package KI_Satzerkennung;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.javafx.css.parser.Token;
+
 
 import java.io.File;
 import java.util.*;
 
 public class TrainWithTrainSet {
     /**
-     * Es gibt 2 Netze einmal für kurze und lange Sätze #
+     * Es gibt 2 Netze einmal für kurze und lange Sätze
      * klein <= 10 rest groß
      */
+
 
     public static void main(String[] args){
         TrainWithTrainSet train = new TrainWithTrainSet();
@@ -19,24 +20,33 @@ public class TrainWithTrainSet {
 
     }
 
+    /**
+     * richtet alles her damit die train methode aufgerufen werden kann
+     *
+     * @param klein
+     * @param save
+     */
     public void trainWithdata(boolean klein, String save){
         try{
-            int[] kurz = {22 ,16 ,8 , 2};
-            int[] lang = {35,24,12,2};
+            //int[] kurz = {22 ,16 ,8 , 2};
+            //int[] lang = {35,24,12,2};
             Network network = Network.loadNetwork(save);
             TrainSet set = createSet(klein);
 
             traindata(network,set,1000,350,200,true,save);
             network.saveNetwork(save);
         }catch (Exception e){
-            e.printStackTrace();
-            throw new RuntimeException(e);
-
+            System.out.println("Problem with loading the Network\nPath: " + save + "dose not exist!");
+            return;
         }
     }
 
 
-
+    /**
+     * Lässt einen Satz testen und gibt das double[] zurück worin sich die Antwort befindet
+     * gnazes double arr weil die auswertung noch folgt...
+     * @param txt
+     */
     public void runSentenceThrough(String txt)  {
         Tokenizer tk = new Tokenizer();
         try {
@@ -61,6 +71,9 @@ public class TrainWithTrainSet {
             throw new RuntimeException(e);
         }
     }
+
+    //helped with testing
+    //fills/shortans an arr to a desired length
     public double[] padOrTruncate(double[] tokens, int targetLength) {
         double[] result = new double[targetLength];
         int copyLength = Math.min(tokens.length, targetLength);
@@ -68,7 +81,12 @@ public class TrainWithTrainSet {
         return result;
     }
 
-
+    /**
+     * erzeugt ein TrainSet und lässt es befüllen
+     * liefer das befüllte TrainSet zurück.
+     * @param klein
+     * @return
+     */
     public TrainSet createSet(boolean klein){
         int inputsize = klein ? 22 : 35;
         TrainSet trainSet = new TrainSet(inputsize,2);
@@ -77,7 +95,16 @@ public class TrainWithTrainSet {
     }
 
 
-
+    /**
+     * trainiert das Netz epoch -mal
+     * @param net
+     * @param trainSet
+     * @param epoch
+     * @param batchsize
+     * @param anz
+     * @param checkAnswers
+     * @param save
+     */
     public void traindata(Network net, TrainSet trainSet,int epoch ,int batchsize, int anz,boolean checkAnswers, String save){
         for(int i = 0; i < epoch; i++){
             net.train(trainSet,batchsize,anz);
@@ -93,9 +120,17 @@ public class TrainWithTrainSet {
     }
 
 
-
+    /**
+     * befüllt und gibt ein TrainSet zurück
+     * + entweder lange oder kurze Sätze befüllen
+     * @param trainSet
+     * @param klein
+     * @return
+     */
     public TrainSet fillTrainSetQA(TrainSet trainSet, boolean klein){
         try {
+            //aus dem Internet für das dataset
+            //lässt einen auf alle Sätze des datasets zugreifen
             File jsonFile = new File("Translated_German_SQuAD-Train-v1.1.json");
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(jsonFile);
@@ -121,12 +156,13 @@ public class TrainWithTrainSet {
             }
 
 
-
-            Random r =  new Random();
+            //selber gemacht ab hier!
+            //füllt das Trainset mit gleich vielen Antworten/Fragen
+            //++ unterschiedliche Längen werden getrennt
             Tokenizer tk = new Tokenizer();
             tk.loadTokenizer("res/tokenizer.json");
 
-            // Training für den Tokenizer
+//            ***************** Training für den Tokenizer *****************
 //            StringBuilder korpus = new StringBuilder();
 //            for(int i = 0; i < 5000; i++){
 //                int idx = r.nextInt(allQuestions.size());
@@ -135,7 +171,7 @@ public class TrainWithTrainSet {
 //            }
 //            tk.train(korpus.toString(), 5000, 2);
 
-//              Durchschnittliche länge der Sätze
+//            *****************Durchschnittliche länge der Sätze ************
 //            double questionSum = 0;
 //            double answerSum = 0;
 //
@@ -145,10 +181,12 @@ public class TrainWithTrainSet {
 //            }
 //            System.out.println("Frage länge: " + questionSum/ allQuestions.size());
 //            System.out.println("Antwort länge: " + answerSum / allAnswers.size());
+
+            //fixed target values
             double[] targetqu = {1,0};
             double[] targetan = {0,1};
 
-            if(klein){
+            if(klein){ //mit kurzen sätzen(<= 10 Wörter) befüllen
                 List<String> filteredQuestions = new ArrayList<>();
                 List<String> filteredAnswers = new ArrayList<>();
 
@@ -172,7 +210,7 @@ public class TrainWithTrainSet {
                 }
 
             }
-            else{
+            else{ //mit langen Sätzen (> 10 Wörter) befüllen
                 List<String> filteredQuestions = new ArrayList<>();
                 List<String> filteredAnswers = new ArrayList<>();
 
@@ -199,14 +237,19 @@ public class TrainWithTrainSet {
             System.out.println("TrainSet Größe: " + trainSet.size());
             return trainSet;
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Probleme mit dem Befüllen des TrainSets...");
+            return null;
         }
-        return null;
     }
 
+    /**
+     * true wenn anz der Wörten im String <= 10
+     * -> ansonsten false
+     * @param text
+     * @return
+     */
     private boolean getCategory(String text) {
         int wordCount = text.split("\\s+").length;
-        if (wordCount <= 10)       return true;
-        else                      return false;
+        return wordCount <= 10;
     }
 }
