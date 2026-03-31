@@ -4,27 +4,30 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.javafx.css.parser.Token;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class TrainWithTrainSet {
+    /**
+     * Es gibt 2 Netze einmal für kurze und lange Sätze #
+     * klein <= 10 rest groß
+     */
+
     public static void main(String[] args){
         TrainWithTrainSet train = new TrainWithTrainSet();
-        //train.trainWithdata();
-        train.runSentenceThrough("Abraham Linkon war der erste Präsident der Vereinigten Staaten von Amerika.");
+        //train.trainWithdata(false,"res/saveLarge.txt");
+        train.runSentenceThrough("Der zwiete Weltkrieg ist 1940 ausgebrochen und hat millionen von Leuten das Leben gekostet.");
 
     }
 
-    public void trainWithdata(){
+    public void trainWithdata(boolean klein, String save){
         try{
-            int[] start = {32, 64, 32, 2};
-            Network network = Network.loadNetwork("res/save32.txt");
-            TrainSet set = createSet(150000);
+            int[] kurz = {22 ,16 ,8 , 2};
+            int[] lang = {35,24,12,2};
+            Network network = Network.loadNetwork(save);
+            TrainSet set = createSet(klein);
 
-            traindata(network,set,5000,300,100,true);
-            network.saveNetwork("res/save32.txt");
+            traindata(network,set,1000,350,200,true,save);
+            network.saveNetwork(save);
         }catch (Exception e){
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -37,15 +40,23 @@ public class TrainWithTrainSet {
     public void runSentenceThrough(String txt)  {
         Tokenizer tk = new Tokenizer();
         try {
+            String save = "res/saveSmall.txt";
+            int targetlength = 22;
+            if(!getCategory(txt)){
+                save = "res/saveLarge.txt";
+                targetlength = 35;
+            }
             tk.loadTokenizer("res/tokenizer.json");
-            Network network = Network.loadNetwork("res/save32.txt");
+            Network network = Network.loadNetwork(save);
 
-            double[] input = padOrTruncate(tk.tokenizeNormalized(txt),32);
+            double[] input = tk.normalize(tk.tokenizeBatch(new String[]{txt}, targetlength)[0]);
             System.out.println(Arrays.toString(input));
             double[] ergebnis =network.checkSentence(input);
             System.out.println(txt);
             System.out.println("Question: " + ergebnis[0]);
             System.out.println("Statement: " + ergebnis[1]);
+
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -54,27 +65,26 @@ public class TrainWithTrainSet {
         double[] result = new double[targetLength];
         int copyLength = Math.min(tokens.length, targetLength);
         System.arraycopy(tokens, 0, result, 0, copyLength);
-        // Rest bleibt automatisch 0 (Java initialisiert Arrays mit 0)
         return result;
     }
 
 
-    public TrainSet createSet(int size){
-
-        TrainSet trainSet = new TrainSet(32,2);
-        trainSet = fillTrainSetQA(trainSet,size);
+    public TrainSet createSet(boolean klein){
+        int inputsize = klein ? 22 : 35;
+        TrainSet trainSet = new TrainSet(inputsize,2);
+        trainSet = fillTrainSetQA(trainSet,klein);
         return trainSet;
     }
 
 
 
-    public void traindata(Network net, TrainSet trainSet,int epoch ,int batchsize, int anz,boolean checkAnswers){
+    public void traindata(Network net, TrainSet trainSet,int epoch ,int batchsize, int anz,boolean checkAnswers, String save){
         for(int i = 0; i < epoch; i++){
             net.train(trainSet,batchsize,anz);
             if(i%100 == 0 && checkAnswers){
                 System.out.println(i+":Runden");
                 try{
-                    net.saveNetwork("res/save32.txt");
+                    net.saveNetwork(save);
                 }catch(Exception e){
                     throw new RuntimeException(e);
                 }
@@ -84,7 +94,7 @@ public class TrainWithTrainSet {
 
 
 
-    public TrainSet fillTrainSetQA(TrainSet trainSet, int size){
+    public TrainSet fillTrainSetQA(TrainSet trainSet, boolean klein){
         try {
             File jsonFile = new File("Translated_German_SQuAD-Train-v1.1.json");
             ObjectMapper mapper = new ObjectMapper();
@@ -114,7 +124,9 @@ public class TrainWithTrainSet {
 
             Random r =  new Random();
             Tokenizer tk = new Tokenizer();
+            tk.loadTokenizer("res/tokenizer.json");
 
+            // Training für den Tokenizer
 //            StringBuilder korpus = new StringBuilder();
 //            for(int i = 0; i < 5000; i++){
 //                int idx = r.nextInt(allQuestions.size());
@@ -123,36 +135,78 @@ public class TrainWithTrainSet {
 //            }
 //            tk.train(korpus.toString(), 5000, 2);
 
-            tk.loadTokenizer("res/tokenizer.json");
-            for(int i = 0; i < 10; i++){
-                System.out.println(allQuestions.get(r.nextInt(allAnswers.size())));
-            }
+//              Durchschnittliche länge der Sätze
+//            double questionSum = 0;
+//            double answerSum = 0;
+//
+//            for(int i = 0; i < allQuestions.size(); i++){
+//                questionSum += allQuestions.get(i).length();
+//                answerSum += allAnswers.get(i).length();
+//            }
+//            System.out.println("Frage länge: " + questionSum/ allQuestions.size());
+//            System.out.println("Antwort länge: " + answerSum / allAnswers.size());
+            double[] targetqu = {1,0};
+            double[] targetan = {0,1};
 
-            String[] qu = allQuestions.toArray(new String[0]);
-            double[][] batch = tk.tokenizeBatch(qu,32);
-            String[] an = allAnswers.toArray(new String[0]);
-            double[][] batch2 = tk.tokenizeBatch(an,32);
-            for(int i = 0; i< batch.length;i++){
-                batch[i] = tk.normalize(batch[i]);
-                batch2[i] = tk.normalize(batch2[i]);
-            }
+            if(klein){
+                List<String> filteredQuestions = new ArrayList<>();
+                List<String> filteredAnswers = new ArrayList<>();
 
-            double[] target = {1,0};
-            double[] target1 = {0,1};
-            for(int i = 0; i < batch.length; i++)
-            {
-                trainSet.add(batch[i],target);
-                trainSet.add(batch2[i],target1);
+                for (String q : allQuestions) {
+                    if (getCategory(q)) filteredQuestions.add(q);
+                }
+                for (String a : allAnswers) {
+                    if (getCategory(a)) filteredAnswers.add(a);
+                }
+                String[] qu = filteredQuestions.toArray(new String[0]);
+                String[] an = filteredAnswers.toArray(new String[0]);
+
+
+                double[][] batchqu = tk.tokenizeBatch(qu,22);
+                double[][] batchan = tk.tokenizeBatch(an,22);
+
+                int smaller = Math.min(batchan.length, batchqu.length);
+                for(int i = 0; i< smaller;i++){
+                    trainSet.add(tk.normalize(batchqu[i]),targetqu);
+                    trainSet.add(tk.normalize(batchan[i]),targetan);
+                }
+
+            }
+            else{
+                List<String> filteredQuestions = new ArrayList<>();
+                List<String> filteredAnswers = new ArrayList<>();
+
+                for (String q : allQuestions) {
+                    if (!getCategory(q)) filteredQuestions.add(q);
+                }
+                for (String a : allAnswers) {
+                    if (!getCategory(a)) filteredAnswers.add(a);
+                }
+                String[] qu = filteredQuestions.toArray(new String[0]);
+                String[] an = filteredAnswers.toArray(new String[0]);
+
+
+                double[][] batchqu = tk.tokenizeBatch(qu,35);
+                double[][] batchan = tk.tokenizeBatch(an,35);
+
+                int smaller = Math.min(batchan.length, batchqu.length);
+                for(int i = 0; i< smaller;i++){
+                    trainSet.add(tk.normalize(batchqu[i]),targetqu);
+                    trainSet.add(tk.normalize(batchan[i]),targetan);
+                }
             }
 
             System.out.println("TrainSet Größe: " + trainSet.size());
-
             return trainSet;
-
-
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private boolean getCategory(String text) {
+        int wordCount = text.split("\\s+").length;
+        if (wordCount <= 10)       return true;
+        else                      return false;
     }
 }
