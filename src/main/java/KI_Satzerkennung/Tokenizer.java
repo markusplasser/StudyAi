@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.regex.*;
 import java.util.stream.*;
 
-public class Tokenizer {
+public class Tokenizer { // Nicht selber gemacht!!!!
 
     private Map<String, Integer> vocab;
     private Map<Integer, String> reverseVocab;

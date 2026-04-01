@@ -17,7 +17,7 @@ public class AI_Operations {
     }
 
     public String anz_Fragen(int anz,String input){
-        String ret = "Erstelle " + anz + " Fragen zu dem nachfolgendem Infotext :" + input + ". Die Fragen sollen jeweils 3 Antwortmöglichkeiten haben a) b) c) wobei nur eine richtig ist und genau diese hat einen großbuchstaben anstall a) b) c) also entweder A) B) C).";
+        String ret = "Erstelle " + anz + " Fragen zu dem nachfolgendem Infotext :" + input + ". Die Fragen sollen jeweils 3 Antwortmöglichkeiten haben a) b) c) wobei nur eine richtig. Diese wird mit Antwort: txt. Alle Fragen und Antworten auf Detsch.";
         return input_Output(ret);
     }
 

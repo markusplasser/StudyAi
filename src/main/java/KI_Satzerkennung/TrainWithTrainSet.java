@@ -16,7 +16,7 @@ public class TrainWithTrainSet {
     public static void main(String[] args){
         TrainWithTrainSet train = new TrainWithTrainSet();
         //train.trainWithdata(false,"res/saveLarge.txt");
-        train.runSentenceThrough("Der zwiete Weltkrieg ist 1940 ausgebrochen und hat millionen von Leuten das Leben gekostet.");
+        train.runSentenceThrough("Ein Gerät, das Daten verarbeitet.");
 
     }
 
@@ -47,7 +47,7 @@ public class TrainWithTrainSet {
      * gnazes double arr weil die auswertung noch folgt...
      * @param txt
      */
-    public void runSentenceThrough(String txt)  {
+    public double[] runSentenceThrough(String txt)  {
         Tokenizer tk = new Tokenizer();
         try {
             String save = "res/saveSmall.txt";
@@ -65,7 +65,7 @@ public class TrainWithTrainSet {
             System.out.println(txt);
             System.out.println("Question: " + ergebnis[0]);
             System.out.println("Statement: " + ergebnis[1]);
-
+            return ergebnis;
 
         } catch (Exception e) {
             throw new RuntimeException(e);
