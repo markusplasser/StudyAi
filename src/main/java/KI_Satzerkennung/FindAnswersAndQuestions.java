@@ -4,6 +4,7 @@ import org.example.Fragen_Antworten;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 
 public class FindAnswersAndQuestions {
@@ -40,19 +41,28 @@ public class FindAnswersAndQuestions {
                 p++;
             }
             String richtig =  removeAnswerPrefix(zeilen.get(p));
-            if(auswertung(t.runSentenceThrough(richtig),0.5).equals("")){
+            p++;
+            if(auswertung(t.runSentenceThrough(richtig), 0.5).equals("Antwort")){
+                List<String> l = Arrays.asList(content);
+                String right = findMostSimilar(richtig, l);
+                boolean[] loesung = new boolean[AntwortenProFrage];
 
+                for(int j = 0; j < AntwortenProFrage; j++){
+                    if(right.equals(content[j])){
+                        loesung[j] = true;
+                    }
+                }
+                add.setContent(content);
+                add.setLoesung(loesung);
             }
-
+            ret[i] = add;
+            System.out.println("added one!");
         }
 
 
         return ret;
     }
 
-//    public int checkRigthAnswer(String richtig, String[] content){
-//
-//    }
     // 1) Entfernt: 1. 2. 3. ... 20.
     public static String removeNumbering(String s) {
         return s.replaceAll("^\\s*(\\d{1,2}\\.)\\s*", "");
@@ -68,7 +78,6 @@ public class FindAnswersAndQuestions {
         return s.replaceAll("^\\s*(Antwort:\\s*)?([a-zA-Z]\\)|\\([a-zA-Z]\\))\\s*", "");
     }
 
-
     public String auswertung(double[] arr, double genauigkeit){
         if(arr.length != 2){
             System.out.println("Auswertung hat ein ungültiges arr bekommen: " + Arrays.toString(arr));
@@ -80,7 +89,49 @@ public class FindAnswersAndQuestions {
         }else{
             return "Ungenau";
         }
+    }
 
+    /**
+     * Schaut welche Antwort am ähnlichsten ist.
+     * Levenshtein'sche methode:
+     * wie viele Zeichen muss ich ändern/einfügen/löschen um von String A zu String B zu kommen
+     * @param target
+     * @param candidates
+     * @return
+     */
+    public static String findMostSimilar(String target, List<String> candidates) {
+        String best = null;
+        int bestDistance = Integer.MAX_VALUE;
+
+        for (String candidate : candidates) {
+            int distance = levenshtein(target, candidate);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = candidate;
+            }
+        }
+        return best;
+    }
+
+
+    public static int levenshtein(String a, String b) {
+        int[][] dp = new int[a.length() + 1][b.length() + 1];
+
+        for (int i = 0; i <= a.length(); i++) dp[i][0] = i;
+        for (int j = 0; j <= b.length(); j++) dp[0][j] = j;
+
+        for (int i = 1; i <= a.length(); i++) {
+            for (int j = 1; j <= b.length(); j++) {
+                if (a.charAt(i - 1) == b.charAt(j - 1)) {
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = 1 + Math.min(dp[i - 1][j - 1],  // ersetzen
+                            Math.min(dp[i - 1][j],        // löschen
+                                    dp[i][j - 1]));      // einfügen
+                }
+            }
+        }
+        return dp[a.length()][b.length()];
     }
 
 }

@@ -8,36 +8,40 @@ import java.util.*;
 
 public class TrainWithTrainSet {
     /**
-     * Es gibt 2 Netze einmal für kurze und lange Sätze
-     * klein <= 10 rest groß
+     *
+     * klein <= 6
+     * mittelklein > 6 && <= 10
+     * mittelgroß > 10 && <= 14
+     * groß > 14
      */
 
 
     public static void main(String[] args){
         TrainWithTrainSet train = new TrainWithTrainSet();
-        //train.trainWithdata(false,"res/saveLarge.txt");
-        train.runSentenceThrough("Ein Gerät, das Daten verarbeitet.");
-
+        //train.trainWithdata(4,"res/save328.txt");
+        train.runSentenceThrough("Wenn du morgen tot bist was würdest du heute noch machen?");
     }
 
     /**
      * richtet alles her damit die train methode aufgerufen werden kann
      *
-     * @param klein
-     * @param save
+     * @param size -satzlänge
+     * @param save -path zur Savedatei
      */
-    public void trainWithdata(boolean klein, String save){
+    public void trainWithdata(int size, String save){
         try{
-            //int[] kurz = {22 ,16 ,8 , 2};
-            //int[] lang = {35,24,12,2};
-            Network network = Network.loadNetwork(save);
-            TrainSet set = createSet(klein);
+            int[] netz1 = {136, 64, 32, 2};
+            int[] netz2 = {176, 64, 32, 2};
+            int[] netz3 = {232, 64, 32, 2};
+            int[] netz4 = {328, 64, 32, 2};
+            int[] layers = size == 1 ? netz1 : size == 2 ? netz2 : size == 3 ? netz3 : netz4;
+            Network network = new Network(5000,8,layers);
+            TrainSet set = createSet(size);
 
-            traindata(network,set,1000,350,200,true,save);
+            traindata(network,set,500,150,200,true,save);
             network.saveNetwork(save);
         }catch (Exception e){
-            System.out.println("Problem with loading the Network\nPath: " + save + "dose not exist!");
-            return;
+            System.out.println("Problem with loading the Network\nPath: " + save + " dose not exist!");
         }
     }
 
@@ -50,17 +54,36 @@ public class TrainWithTrainSet {
     public double[] runSentenceThrough(String txt)  {
         Tokenizer tk = new Tokenizer();
         try {
-            String save = "res/saveSmall.txt";
-            int targetlength = 22;
-            if(!getCategory(txt)){
-                save = "res/saveLarge.txt";
-                targetlength = 35;
+            int length = getCategory(txt);
+            int targetlength = 41;
+            String save = "res/save328.txt";
+
+            switch (length){
+                case 1:
+                    targetlength = 17;
+                    save = "res/save136.txt";
+                    System.out.println("Verwendete Länge: 1-kurz");
+                    break;
+                case 2:
+                    targetlength = 22;
+                    save = "res/save176.txt";
+                    System.out.println("Verwendete Länge: 2-mittel-kurz");
+                    break;
+                case 3:
+                    targetlength = 29;
+                    save = "res/save232.txt";
+                    System.out.println("Verwendete Länge: 3-mittel-lang");
             }
+            if(targetlength == 41){
+                System.out.println("Verwendete Länge: 4-lang");
+            }
+
+
+
             tk.loadTokenizer("res/tokenizer.json");
             Network network = Network.loadNetwork(save);
 
-            double[] input = tk.normalize(tk.tokenizeBatch(new String[]{txt}, targetlength)[0]);
-            System.out.println(Arrays.toString(input));
+            double[] input = tk.tokenizeBatch(new String[]{txt}, targetlength)[0];
             double[] ergebnis =network.checkSentence(input);
             System.out.println(txt);
             System.out.println("Question: " + ergebnis[0]);
@@ -84,13 +107,13 @@ public class TrainWithTrainSet {
     /**
      * erzeugt ein TrainSet und lässt es befüllen
      * liefer das befüllte TrainSet zurück.
-     * @param klein
+     * @param size
      * @return
      */
-    public TrainSet createSet(boolean klein){
-        int inputsize = klein ? 22 : 35;
+    public TrainSet createSet(int size){
+        int inputsize = size == 1 ? 17 : size == 2 ? 22 : size == 3 ? 29 : 41;
         TrainSet trainSet = new TrainSet(inputsize,2);
-        trainSet = fillTrainSetQA(trainSet,klein);
+        trainSet = fillTrainSetQA(trainSet,size);
         return trainSet;
     }
 
@@ -105,29 +128,37 @@ public class TrainWithTrainSet {
      * @param checkAnswers
      * @param save
      */
-    public void traindata(Network net, TrainSet trainSet,int epoch ,int batchsize, int anz,boolean checkAnswers, String save){
+    public void traindata(Network net, TrainSet trainSet, int epoch, int batchsize, int anz, boolean checkAnswers, String save){
         for(int i = 0; i < epoch; i++){
-            net.train(trainSet,batchsize,anz);
-            if(i%100 == 0 && checkAnswers){
-                System.out.println(i+":Runden");
-                try{
-                    net.saveNetwork(save);
-                }catch(Exception e){
-                    throw new RuntimeException(e);
-                }
+            net.train(trainSet, batchsize, anz);
+            if(i % 100 == 0 && checkAnswers){
+                System.out.println(i + " Runden - Loss: " + calcLoss(net, trainSet));
             }
         }
+    }
+
+    private double calcLoss(Network net, TrainSet trainSet){
+        double totalLoss = 0;
+        int samples = Math.min(500, trainSet.size());
+        for(int i = 0; i < samples; i++){
+            double[] output = net.calculate(net.embedInput(trainSet.getInput(i)));
+            double[] target = trainSet.getTarget(i);
+            for(int j = 0; j < output.length; j++){
+                totalLoss += Math.pow(output[j] - target[j], 2);
+            }
+        }
+        return totalLoss / samples;
     }
 
 
     /**
      * befüllt und gibt ein TrainSet zurück
      * + entweder lange oder kurze Sätze befüllen
-     * @param trainSet
-     * @param klein
-     * @return
+     * @param trainSet - Trainset
+     * @param length - länge des Netzbereiches das triniert wird
+     * @return {@link TrainSet}
      */
-    public TrainSet fillTrainSetQA(TrainSet trainSet, boolean klein){
+    public TrainSet fillTrainSetQA(TrainSet trainSet, int length){
         try {
             //aus dem Internet für das dataset
             //lässt einen auf alle Sätze des datasets zugreifen
@@ -142,18 +173,29 @@ public class TrainWithTrainSet {
             JsonNode dataArray = root.get("data");
             for (JsonNode article : dataArray) {
                 for (JsonNode paragraph : article.get("paragraphs")) {
+                    String context = paragraph.get("context").asText();
+                    String[] sentences = context.split("(?<=[.!?])\\s+");
 
-                    // Fragen extrahieren
                     for (JsonNode qa : paragraph.get("qas")) {
+                        // Frage hinzufügen
                         allQuestions.add(qa.get("question").asText());
 
-                        // Antworten extrahieren (falls vorhanden)
-                        if (qa.has("answers") && qa.get("answers").size() > 0) {
-                            allAnswers.add(qa.get("answers").get(0).get("text").asText());
+                        // Vollständigen Satz aus Kontext nehmen, nicht das kurze Answer-Fragment
+                        if (qa.has("answers") && !qa.get("answers").isEmpty()) {
+                            String answerText = qa.get("answers").get(0).get("text").asText();
+
+                            for (String sentence : sentences) {
+                                if (sentence.contains(answerText)
+                                        && sentence.endsWith(".")) {            // vollständiger Satz
+                                    allAnswers.add(sentence.trim());
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
             }
+
 
 
             //selber gemacht ab hier!
@@ -161,6 +203,7 @@ public class TrainWithTrainSet {
             //++ unterschiedliche Längen werden getrennt
             Tokenizer tk = new Tokenizer();
             tk.loadTokenizer("res/tokenizer.json");
+
 
 //            ***************** Training für den Tokenizer *****************
 //            StringBuilder korpus = new StringBuilder();
@@ -186,55 +229,75 @@ public class TrainWithTrainSet {
             double[] targetqu = {1,0};
             double[] targetan = {0,1};
 
-            if(klein){ //mit kurzen sätzen(<= 10 Wörter) befüllen
-                List<String> filteredQuestions = new ArrayList<>();
-                List<String> filteredAnswers = new ArrayList<>();
-
-                for (String q : allQuestions) {
-                    if (getCategory(q)) filteredQuestions.add(q);
-                }
-                for (String a : allAnswers) {
-                    if (getCategory(a)) filteredAnswers.add(a);
-                }
-                String[] qu = filteredQuestions.toArray(new String[0]);
-                String[] an = filteredAnswers.toArray(new String[0]);
-
-
-                double[][] batchqu = tk.tokenizeBatch(qu,22);
-                double[][] batchan = tk.tokenizeBatch(an,22);
-
-                int smaller = Math.min(batchan.length, batchqu.length);
-                for(int i = 0; i< smaller;i++){
-                    trainSet.add(tk.normalize(batchqu[i]),targetqu);
-                    trainSet.add(tk.normalize(batchan[i]),targetan);
-                }
-
+            ArrayList<String> arrqu = new ArrayList<>();
+            ArrayList<String> arran = new ArrayList<>();
+            int maxlength =0;
+            int smaller = Math.min(allAnswers.size(),allQuestions.size());
+            switch (length){
+                case 1:
+                    for(int i = 0; i < smaller; i++){
+                        if(getCategory(allQuestions.get(i)) == 1){
+                            arrqu.add(allQuestions.get(i));
+                        }
+                        if(getCategory(allAnswers.get(i)) == 1){
+                            arran.add(allAnswers.get(i));
+                        }
+                    }
+                    maxlength = 17;
+                    break;
+                case 2:
+                    for(int i = 0; i < smaller; i++){
+                        if(getCategory(allQuestions.get(i)) == 2){
+                            arrqu.add(allQuestions.get(i));
+                        }
+                        if(getCategory(allAnswers.get(i)) == 2){
+                            arran.add(allAnswers.get(i));
+                        }
+                    }
+                    maxlength = 22;
+                    break;
+                case 3:
+                    for(int i = 0; i < smaller; i++){
+                        if(getCategory(allQuestions.get(i)) == 3){
+                            arrqu.add(allQuestions.get(i));
+                        }
+                        if(getCategory(allAnswers.get(i)) == 3){
+                            arran.add(allAnswers.get(i));
+                        }
+                    }
+                    maxlength = 29;
+                    break;
+                case 4:
+                    for(int i = 0; i < smaller; i++){
+                        if(getCategory(allQuestions.get(i)) == 4){
+                            arrqu.add(allQuestions.get(i));
+                        }
+                        if(getCategory(allAnswers.get(i)) == 4){
+                            arran.add(allAnswers.get(i));
+                        }
+                    }
+                    maxlength = 41;
+                    break;
+                default:
+                    maxlength = 0;
             }
-            else{ //mit langen Sätzen (> 10 Wörter) befüllen
-                List<String> filteredQuestions = new ArrayList<>();
-                List<String> filteredAnswers = new ArrayList<>();
 
-                for (String q : allQuestions) {
-                    if (!getCategory(q)) filteredQuestions.add(q);
-                }
-                for (String a : allAnswers) {
-                    if (!getCategory(a)) filteredAnswers.add(a);
-                }
-                String[] qu = filteredQuestions.toArray(new String[0]);
-                String[] an = filteredAnswers.toArray(new String[0]);
+            smaller = Math.min(arrqu.size(),arran.size());
+            for(int i = 0; i < smaller; i++){
+                trainSet.add(tk.tokenizeBatch(new String[]{arrqu.get(i)},maxlength)[0] ,targetqu);
+                trainSet.add(tk.tokenizeBatch(new String[]{arran.get(i)},maxlength)[0] ,targetan);
+            }
+            System.out.println("Fragen Kategorie 2:    " + arrqu.size());
+            System.out.println("Antworten Kategorie 2: " + arran.size());
 
-
-                double[][] batchqu = tk.tokenizeBatch(qu,35);
-                double[][] batchan = tk.tokenizeBatch(an,35);
-
-                int smaller = Math.min(batchan.length, batchqu.length);
-                for(int i = 0; i< smaller;i++){
-                    trainSet.add(tk.normalize(batchqu[i]),targetqu);
-                    trainSet.add(tk.normalize(batchan[i]),targetan);
-                }
+            for(int i = 0; i < 10; i++){
+                System.out.println("Statement: " + arran.get(i));
+                System.out.println("Frage: " + arrqu.get(i));
             }
 
             System.out.println("TrainSet Größe: " + trainSet.size());
+            System.out.println("Fragen gesamt: " + allQuestions.size());
+            System.out.println("Antworten gesamt: " + allAnswers.size());
             return trainSet;
         } catch (Exception e) {
             System.out.println("Probleme mit dem Befüllen des TrainSets...");
@@ -243,13 +306,18 @@ public class TrainWithTrainSet {
     }
 
     /**
-     * true wenn anz der Wörten im String <= 10
-     * -> ansonsten false
+     * 0 -> <=5
+     * 1 -> >5 & <=10
+     * 2 -> >10 & <= 15
+     * 3 -> >15
      * @param text
      * @return
      */
-    private boolean getCategory(String text) {
+    private int getCategory(String text) {
         int wordCount = text.split("\\s+").length;
-        return wordCount <= 10;
+        if(wordCount <= 5) return 1;
+        if(wordCount <= 10) return 2;
+        if(wordCount <= 15) return 3;
+        return 4;
     }
 }

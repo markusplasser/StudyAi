@@ -14,14 +14,19 @@ public class Network {
     private double[][] output;
     private double[][] output_derivative;
     private double[][] err_signal;
+    private double[][] embedding;
 
-    private static final double eta = 0.3;
+    private static final double eta = 0.05;
+    private final int EMBEDDING_DIM;
+    private final int VOCAB_SIZE;
     private int NETWORK_SIZE;
     private int[] NETWORK_LAYER_SIZE;
     private int INPUT_LAYER_SIZE;
     private int OUTPUT_LAYER_SIZE;
 
-    public Network(int... NETWORK_LAYER_SIZE) {
+    public Network(int VOCAB_SIZE, int embeddingDim, int... NETWORK_LAYER_SIZE) {
+        EMBEDDING_DIM = embeddingDim;
+        this.VOCAB_SIZE = VOCAB_SIZE;
         NETWORK_SIZE = NETWORK_LAYER_SIZE.length;
         this.NETWORK_LAYER_SIZE = NETWORK_LAYER_SIZE;
         INPUT_LAYER_SIZE = NETWORK_LAYER_SIZE[0];
@@ -32,15 +37,19 @@ public class Network {
         output = new double[NETWORK_SIZE][];
         err_signal = new double[NETWORK_SIZE][];
         output_derivative = new double[NETWORK_SIZE][];
+        embedding = new double[this.VOCAB_SIZE][EMBEDDING_DIM];
 
         for(int i = 0; i < NETWORK_SIZE; i++) {
-            bias[i] = createRandomArr(NETWORK_LAYER_SIZE[i],-2.5,2.7);
+            bias[i] = createRandomArr(NETWORK_LAYER_SIZE[i],-0.5,0.5);
             output[i] = new double[NETWORK_LAYER_SIZE[i]];
             err_signal[i] = new double[NETWORK_LAYER_SIZE[i]];
             output_derivative[i] = new double[NETWORK_LAYER_SIZE[i]];
             if(i > 0){
                 weights[i] = createRandomArr(NETWORK_LAYER_SIZE[i],NETWORK_LAYER_SIZE[i-1],-0.5,0.5);
             }
+        }
+        for(int i = 0; i< 5000; i++){
+            embedding[i] = createRandomArr(8,-0.1,0.1);
         }
     }
 
@@ -56,7 +65,7 @@ public class Network {
         if(input.length != INPUT_LAYER_SIZE){
             return null;
         }
-        output[0] = input;
+        output[0] =input;
         for(int layer = 1; layer < NETWORK_SIZE; layer++){
             for(int neuron = 0; neuron < NETWORK_LAYER_SIZE[layer]; neuron++){
                 double sum = bias[layer][neuron];
@@ -70,17 +79,30 @@ public class Network {
         return output[NETWORK_SIZE-1];
     }
 
+    public double[] embedInput(double[] rawIDs){
+        double[] ret = new double[rawIDs.length*EMBEDDING_DIM];
+        int count = 0;
+        for(int i = 0; i < rawIDs.length; i++){
+            int id = (int) rawIDs[i];
+            double[] add = embedding[id];
+            for(int j = 0; j<add.length;j++){
+                ret[count] = add[j];
+                count++;
+            }
+        }
+        return ret;
+    }
+
 
      /**
      *Calc. the Cost func
-     * Alles wurde selber geschrieben und auch verstanden.
      * Natürlich nicht selber erfunden!!
-     * Dieses Video erklärt alle schritte Mathematisch die umsetzung in Java ist selber gemacht!!
+     * Dieses Video erklärt alle schritte Mathematisch.
      * https://www.youtube.com/watch?v=tIeHLnjs5U8
      * @param traget
      * @return err_signal
      */
-    public void backpropagation(double[] traget){
+    public void backpropagation(double[] traget, double[] rawIDs){
         /**
          * err_signal = (outputVal - target) * output_derivetive[][]
          *
@@ -111,6 +133,23 @@ public class Network {
                 this.err_signal[layer][neuron] = sum* output_derivative[layer][neuron];
             }
         }
+
+        for(int i = 0; i < rawIDs.length; i++){
+            int tokenID = (int) rawIDs[i];
+
+            if(tokenID == 0) continue;
+
+            for(int dim = 0; dim < EMBEDDING_DIM; dim++){
+                int inputIndex = i*EMBEDDING_DIM+dim;
+
+                double fehler = 0;
+                for(int neuron = 0; neuron < NETWORK_LAYER_SIZE[1]; neuron++){
+                    fehler += err_signal[1][neuron] * weights[1][neuron][inputIndex];
+                }
+
+                embedding[tokenID][dim] -= fehler * eta;
+            }
+        }
     }
 
     public void train(TrainSet trainSet, int batchsize, int anz){
@@ -123,15 +162,16 @@ public class Network {
         }
     }
 
-    private void train(double[] input, double[] target){
-        if(input.length != INPUT_LAYER_SIZE || target.length != OUTPUT_LAYER_SIZE){return;}
-        calculate(input);
-        backpropagation(target);
+    private void train(double[] rawIDs, double[] target){
+        if(rawIDs.length* EMBEDDING_DIM != INPUT_LAYER_SIZE || target.length != OUTPUT_LAYER_SIZE){return;}
+        double[] embedded = embedInput(rawIDs);
+        calculate(embedded);
+        backpropagation(target, rawIDs);
         update(eta);
     }
 
     public double[] checkSentence(double[] input){
-        return calculate(input);
+        return calculate(embedInput(input));
     }
 
     public void update(double eta){
@@ -229,6 +269,11 @@ public class Network {
                 w.addAttribute("" + we, Arrays.toString(weights[layer][we]));
             }
         }
+        Node emb = new Node("Embeddings");
+        root.addChild(emb);
+        for(int i = 0; i < VOCAB_SIZE; i++){
+            emb.addAttribute("" + i, Arrays.toString(embedding[i]));
+        }
         p.close();
     }
     public static Network loadNetwork(String path)throws Exception{
@@ -237,7 +282,7 @@ public class Network {
         p.load(path);
         String sizes = p.getValue(new String[] { "Network" }, "sizes");
         int[] si = ParserTools.parseIntArray(sizes);
-        Network ne = new Network(si);
+        Network ne = new Network(5000,8,si);
 
         for (int i = 1; i < ne.NETWORK_SIZE; i++) {
             String biases = p.getValue(new String[] { "Network", "Layers", i + "", "biases" }, "values");
@@ -252,8 +297,11 @@ public class Network {
                 ne.weights[i][n] = val;
             }
         }
+        for(int i = 0; i < ne.VOCAB_SIZE; i++){
+            String embRow = p.getValue(new String[]{"Embeddings"}, "" + i);
+            ne.embedding[i] = ParserTools.parseDoubleArray(embRow);
+        }
         p.close();
         return ne;
-
     }
 }

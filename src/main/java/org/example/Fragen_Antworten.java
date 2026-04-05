@@ -33,4 +33,5 @@ public class Fragen_Antworten {
     public boolean[] getLoesung() {
         return loesung;
     }
+    public void setLoesung(boolean[] loesung) {this.loesung = loesung;}
 }
