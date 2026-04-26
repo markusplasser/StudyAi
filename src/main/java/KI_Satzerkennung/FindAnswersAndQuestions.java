@@ -21,7 +21,6 @@ public class FindAnswersAndQuestions {
             }
         }
         System.out.println(zeilen);
-
         String start = zeilen.getFirst();
         int p = 1;
         while(!auswertung(t.runSentenceThrough(removeNumbering(start)),0.5).equals("Frage")){
@@ -35,12 +34,22 @@ public class FindAnswersAndQuestions {
             String[] content = new String[AntwortenProFrage];
             for(int j = 0; j < AntwortenProFrage; j++){
                 String antwort = removeLettering(zeilen.get(p));
-                if(auswertung(t.runSentenceThrough(antwort),0.5).equals("Antwort")){
+                if(auswertung(t.runSentenceThrough(antwort),0.2).equals("Antwort")){
                     content[j] = antwort;
+                }
+                else{
+                    return ret;
                 }
                 p++;
             }
-            String richtig =  removeAnswerPrefix(zeilen.get(p));
+            String richtig = "";
+            if(auswertung(t.runSentenceThrough(removeAnswerPrefix(zeilen.get(p))),0.2).equals("Antwort")){
+                richtig = removeAnswerPrefix(zeilen.get(p));
+            }
+            else{
+                System.out.println("Fehler");
+            }
+
             p++;
             if(auswertung(t.runSentenceThrough(richtig), 0.5).equals("Antwort")){
                 List<String> l = Arrays.asList(content);
@@ -92,6 +101,7 @@ public class FindAnswersAndQuestions {
     }
 
     /**
+     * Nicht selber gemacht
      * Schaut welche Antwort am ähnlichsten ist.
      * Levenshtein'sche methode:
      * wie viele Zeichen muss ich ändern/einfügen/löschen um von String A zu String B zu kommen

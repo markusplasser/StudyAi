@@ -35,7 +35,7 @@ public class TrainWithTrainSet {
             int[] netz3 = {232, 64, 32, 2};
             int[] netz4 = {328, 64, 32, 2};
             int[] layers = size == 1 ? netz1 : size == 2 ? netz2 : size == 3 ? netz3 : netz4;
-            Network network = new Network(5000,8,layers);
+            Network network = Network.loadNetwork(save);
             TrainSet set = createSet(size);
 
             traindata(network,set,500,150,200,true,save);
