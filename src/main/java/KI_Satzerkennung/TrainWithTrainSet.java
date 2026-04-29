@@ -8,7 +8,7 @@ import java.util.*;
 
 public class TrainWithTrainSet {
     /**
-     *
+     * Wörter
      * klein <= 6
      * mittelklein > 6 && <= 10
      * mittelgroß > 10 && <= 14
@@ -18,8 +18,8 @@ public class TrainWithTrainSet {
 
     public static void main(String[] args){
         TrainWithTrainSet train = new TrainWithTrainSet();
-        //train.trainWithdata(4,"res/save328.txt");
-        train.runSentenceThrough("Wenn du morgen tot bist was würdest du heute noch machen?");
+        //train.trainWithdata(2,"res/save176.txt");
+        train.runSentenceThrough("Hast du das schon mal gemacht");
     }
 
     /**
@@ -36,6 +36,7 @@ public class TrainWithTrainSet {
             int[] netz4 = {328, 64, 32, 2};
             int[] layers = size == 1 ? netz1 : size == 2 ? netz2 : size == 3 ? netz3 : netz4;
             Network network = Network.loadNetwork(save);
+                    //new Network(5000,8,netz..);
             TrainSet set = createSet(size);
 
             traindata(network,set,500,150,200,true,save);
@@ -62,7 +63,7 @@ public class TrainWithTrainSet {
                 case 1:
                     targetlength = 17;
                     save = "res/save136.txt";
-                    System.out.println("Verwendete Länge: 1-kurz");
+                    //System.out.println("Verwendete Länge: 1-kurz");
                     break;
                 case 2:
                     targetlength = 22;
@@ -72,10 +73,10 @@ public class TrainWithTrainSet {
                 case 3:
                     targetlength = 29;
                     save = "res/save232.txt";
-                    System.out.println("Verwendete Länge: 3-mittel-lang");
+                    //System.out.println("Verwendete Länge: 3-mittel-lang");
             }
             if(targetlength == 41){
-                System.out.println("Verwendete Länge: 4-lang");
+                //System.out.println("Verwendete Länge: 4-lang");
             }
 
 
@@ -150,6 +151,12 @@ public class TrainWithTrainSet {
         return totalLoss / samples;
     }
 
+    public String entferneSatzzeichenAmEnde(String text) {
+        if (text == null) return null;
+        // \p{Punct} erkennt alle gängigen Satzzeichen (!, ?, ., ,, etc.)
+        // $ steht für das Ende der Zeile
+        return text.replaceAll("\\p{Punct}+$", "");
+    }
 
     /**
      * befüllt und gibt ein TrainSet zurück
@@ -178,7 +185,7 @@ public class TrainWithTrainSet {
 
                     for (JsonNode qa : paragraph.get("qas")) {
                         // Frage hinzufügen
-                        allQuestions.add(qa.get("question").asText());
+                        allQuestions.add(entferneSatzzeichenAmEnde(qa.get("question").asText()));
 
                         // Vollständigen Satz aus Kontext nehmen, nicht das kurze Answer-Fragment
                         if (qa.has("answers") && !qa.get("answers").isEmpty()) {
@@ -187,7 +194,7 @@ public class TrainWithTrainSet {
                             for (String sentence : sentences) {
                                 if (sentence.contains(answerText)
                                         && sentence.endsWith(".")) {            // vollständiger Satz
-                                    allAnswers.add(sentence.trim());
+                                    allAnswers.add(entferneSatzzeichenAmEnde(sentence.trim()));
                                     break;
                                 }
                             }

@@ -34,4 +34,23 @@ public class Fragen_Antworten {
         return loesung;
     }
     public void setLoesung(boolean[] loesung) {this.loesung = loesung;}
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Frage: ").append(frage).append("\n");
+        sb.append("Antwortmöglichkeiten:\n");
+
+        if (content != null && loesung != null) {
+            for (int i = 0; i < content.length; i++) {
+                sb.append(String.format("  [%s] %s\n",
+                        loesung[i] ? "X" : " ",
+                        content[i]));
+            }
+        } else {
+            sb.append("  (Keine Antworten definiert)");
+        }
+
+        return sb.toString();
+    }
 }

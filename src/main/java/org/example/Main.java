@@ -128,9 +128,10 @@ public class Main {
                 "c) Erstellung von Spielen für Spielkonsolen\n" +
                 "Antwort: a) Klimaforschung und medizinische Berechnungen";
 
-        System.out.println(tmp);
+        //System.out.println(tmp);
         Fragen_Antworten[] test = f.find(tmp,15,3);
-
-        System.out.println(Arrays.toString(test));
+        for(int i = 0; i < test.length; i++){
+            System.out.println(test[i].toString());
+        }
     }
 }

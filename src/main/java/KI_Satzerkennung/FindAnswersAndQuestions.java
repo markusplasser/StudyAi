@@ -20,17 +20,22 @@ public class FindAnswersAndQuestions {
                 zeilen.add(tmp[i]);
             }
         }
-        System.out.println(zeilen);
+        //System.out.println(zeilen);
         String start = zeilen.getFirst();
         int p = 1;
         while(!auswertung(t.runSentenceThrough(removeNumbering(start)),0.5).equals("Frage")){
             start = zeilen.get(p);
             p++;
         }
-        p++;
+
 
         for(int i = 0; i < anzFragen; i++){
             Fragen_Antworten add = new Fragen_Antworten();
+            String frage = "";
+            if(i != 0){
+                frage = zeilen.get(p);
+                p++;
+            }
             String[] content = new String[AntwortenProFrage];
             for(int j = 0; j < AntwortenProFrage; j++){
                 String antwort = removeLettering(zeilen.get(p));
@@ -42,33 +47,32 @@ public class FindAnswersAndQuestions {
                 }
                 p++;
             }
-            String richtig = "";
-            if(auswertung(t.runSentenceThrough(removeAnswerPrefix(zeilen.get(p))),0.2).equals("Antwort")){
-                richtig = removeAnswerPrefix(zeilen.get(p));
-            }
-            else{
-                System.out.println("Fehler");
-            }
-
-            p++;
-            if(auswertung(t.runSentenceThrough(richtig), 0.5).equals("Antwort")){
+            String richtig = removeAnswerPrefix(zeilen.get(p));
+            //Checkt ob die richtige Antwort auch eine Antwort ist.
+            if(auswertung(t.runSentenceThrough(removeAnswerPrefix(richtig)),0.2).equals("Antwort")){
                 List<String> l = Arrays.asList(content);
                 String right = findMostSimilar(richtig, l);
                 boolean[] loesung = new boolean[AntwortenProFrage];
-
                 for(int j = 0; j < AntwortenProFrage; j++){
                     if(right.equals(content[j])){
                         loesung[j] = true;
                     }
                 }
+                if( i == 0){
+                    add.setFrage(start);
+                }else{
+                    add.setFrage(frage);
+                }
                 add.setContent(content);
                 add.setLoesung(loesung);
             }
+            else{
+                System.out.println("Fehler");
+            }
+            p++;
             ret[i] = add;
             System.out.println("added one!");
         }
-
-
         return ret;
     }
 
