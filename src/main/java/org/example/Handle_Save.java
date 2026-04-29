@@ -10,9 +10,24 @@ public class Handle_Save {
     private String filename;
 
 
-    public Handle_Save(Fragen_Antworten[] arr,String filename) {
-        this.filename = filename;
+    public String getPath() {
+        return path;
+    }
+
+    public Fragen_Antworten[] getArr() {
+        return arr;
+    }
+
+    public void setArr(Fragen_Antworten[] arr) {
         this.arr = arr;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
     }
 
     /**
