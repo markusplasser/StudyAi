@@ -1,6 +1,5 @@
 package org.example;
 
-import javafx.scene.Scene;
 
 public class Fragen_Antworten {
     private String[] content;
@@ -34,6 +33,9 @@ public class Fragen_Antworten {
         return loesung;
     }
     public void setLoesung(boolean[] loesung) {this.loesung = loesung;}
+    public void setFirstQuestion(String marker){
+        content[0] = marker;
+    }
 
     @Override
     public String toString() {

@@ -16,8 +16,8 @@ public class AI_Operations {
         return chat.generate(input);
     }
 
-    public String anz_Fragen(int anz,String input){
-        String ret = "Erstelle " + anz + " Fragen zu dem nachfolgendem Infotext :" + input + ". Die Fragen sollen jeweils 3 Antwortmöglichkeiten haben a) b) c) wobei nur eine richtig. Diese wird mit 'Antwort: ...'  . Alle Fragen und Antworten auf Detsch.";
+    public String anz_Fragen(String input,int anzQuestions, int anzAnswers){
+        String ret = "Erstelle " + anzQuestions + " Fragen mit je "+ anzAnswers + " Antworten zu dem nachfolgendem Infotext :" + input + ". Die Fragen haben Antworten die mit a) b) c) gekennzeichnent sind wobei nur eine richtig. Diese wird mit 'Antwort: ...' angezeigt . Alle Fragen und Antworten auf Detsch.";
         return input_Output(ret);
     }
 

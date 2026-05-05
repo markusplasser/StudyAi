@@ -3,9 +3,14 @@ package org.example;
 import okio.Buffer;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public class Handle_Save {
-    public final String path = System.getProperty("user.dir");
+    public final String path = System.getProperty("user.home");
+    public static String savePath;
     private Fragen_Antworten[] arr;
     private String filename;
 
@@ -30,15 +35,20 @@ public class Handle_Save {
         this.filename = filename;
     }
 
+    public Handle_Save(String p){
+        savePath = this.path + "\\" + p;
+        if(!isSaveFolder(savePath)){
+            createSaveFolder(savePath);
+        }
+
+    }
     /**
      * übernimmt das Speichern von ganzen Fargen_Antworten arrays
      * Speichert am Anfang die Anzahl der Fragen + die Anz der Antwortmöglichkeiten
      * StudyAi\save\filename - Speicherort
      */
-    public void save(int anzAnwortmöglichkeiten) {
-        if (!create_default_saveFolder()) {
-            System.out.println("Fehler beim erzeugen des save folders");
-        }
+    public void save() {
+
         String userpath =  path + "\\save\\" + filename + ".txt";
 
         try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(userpath)))) {
@@ -67,9 +77,10 @@ public class Handle_Save {
             System.out.println("Das File das eingelesen werden soll gibt es nicht");
         }
 
-        String userpath = path + "\\save\\" + filename + ".txt";
+        String userpath = savePath + filename + ".txt";
 
-        Fragen_Antworten[] ret = new Fragen_Antworten[0];
+        ArrayList<Fragen_Antworten> ret = new ArrayList<>();
+
         try(DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(userpath)))) {
             int length = dis.readInt(); // wie viele Fragen es insgesamt zum einlesen gibt
             int anz_fragen = dis.readInt(); // wie viele Antwortmöglichkeiten es gibt - kann sich nur von Datei zu Datei ändern
@@ -81,13 +92,14 @@ public class Handle_Save {
                     content[j] = dis.readUTF();
                     bool[j] = dis.readBoolean();
                 }
-                ret[i] = new Fragen_Antworten(frage,content,bool);
+                ret.add(new Fragen_Antworten(frage,content,bool));
             }
         }
         catch(IOException e){
             System.out.println("Fehlerö beim einlesen aus der Datei:" + userpath);
+            return null;
         }
-        return ret;
+        return ret.toArray(new Fragen_Antworten[0]);
     }
 
     public boolean check_file_exist(String filname){
@@ -100,14 +112,30 @@ public class Handle_Save {
     }
 
     /**
-     * Erzeugt einen save Folder in StudyAi
-     * Der Folder heißt "save"
+     * Checks if the save folder exists
      * @return
      */
-    private boolean create_default_saveFolder(){
-        String userpath = path + "\\save";
-        File f = new File(userpath);
-        return f.mkdir();
+    public boolean isSaveFolder(String path){
+        Path p = Paths.get(path);
+        if(Files.isDirectory(p)){
+            return true;
+        }
+        return false;
     }
+
+    /**
+     * Erzeugt den Path mit dem save Folder
+     */
+    private void createSaveFolder(String path){
+        Path p = Paths.get(path);
+        try{
+            Files.createDirectories(p);
+        }
+        catch(IOException e){
+            e.printStackTrace();
+        }
+    }
+
+
 
 }

@@ -1,0 +1,2 @@
+saveFolder=\\StudyAi\\save
+
