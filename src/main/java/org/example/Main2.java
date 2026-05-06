@@ -8,5 +8,6 @@ public class Main2 {
     public static void main(String[] args){
         Aplication.main(args);
         System.out.println("Hola");
+        System.out.println("Hola2");
     }
 }
