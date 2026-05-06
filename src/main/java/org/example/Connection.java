@@ -1,8 +1,10 @@
 package org.example;
 import KI_Satzerkennung.FindAnswersAndQuestions;
+import dev.langchain4j.model.ollama.OllamaChatModel;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Properties;
 
 public class Connection {
@@ -20,7 +22,8 @@ public class Connection {
 
         hs = new Handle_Save(p.getProperty("saveFolder"));
         FAAQ = new FindAnswersAndQuestions();
-        ai = new AI_Operations();
+        OllamaChatModel chat = OllamaChatModel.builder().baseUrl("http://localhost:8080").modelName("llama3").timeout(Duration.ofMinutes(5)).build();
+        ai = new AI_Operations(chat);
     }
     public boolean saveConnection(String inputtxt, int anzFragen, int anzProFrage , String fileName){
         String aiAnswer = ai.anz_Fragen(inputtxt, anzFragen, anzProFrage);

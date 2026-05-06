@@ -6,13 +6,18 @@ import java.time.Duration;
 
 public class AI_Operations {
 
-    OllamaChatModel chat;
+    private final OllamaChatModel chat;
 
-    public AI_Operations() {
-        chat = OllamaChatModel.builder().baseUrl("http://localhost:8080").modelName("llama3").timeout(Duration.ofMinutes(5)).build();
+    // Konstruktor nimmt das Modell entgegen
+    public AI_Operations(OllamaChatModel chat) {
+        this.chat = chat;
     }
 
-    public String input_Output(String input){
+    public OllamaChatModel getChat() {
+        return chat;
+    }
+
+    private String input_Output(String input){
         return chat.generate(input);
     }
 
