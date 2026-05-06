@@ -9,7 +9,7 @@ public class AI_Operations {
     OllamaChatModel chat;
 
     public AI_Operations() {
-        chat = OllamaChatModel.builder().baseUrl("http://localhost:11434").modelName("llama3").timeout(Duration.ofMinutes(5)).build();
+        chat = OllamaChatModel.builder().baseUrl("http://localhost:8080").modelName("llama3").timeout(Duration.ofMinutes(5)).build();
     }
 
     public String input_Output(String input){

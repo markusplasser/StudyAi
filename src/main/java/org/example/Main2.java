@@ -1,7 +1,11 @@
 package org.example;
 
-public class Main2 {
-    public static void main(String[] args) {
+import GUI.Aplication;
 
+public class Main2 {
+
+
+    public static void main(String[] args){
+        Aplication.main(args);
     }
 }
