@@ -1,7 +1,5 @@
 package org.example;
 
-import okio.Buffer;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,11 +34,17 @@ public class Handle_Save {
     }
 
     public Handle_Save(String p){
-        savePath = this.path + "\\" + p;
-        if(!isSaveFolder(savePath)){
+        savePath = this.path + File.separator + p;
+        if(!isSaveFolderExisting(savePath)){
             createSaveFolder(savePath);
         }
 
+    }
+    public Handle_Save(String basePath, String subFolder) {
+        savePath = basePath + File.separator + subFolder;
+        if (!isSaveFolderExisting(savePath)) {
+            createSaveFolder(savePath);
+        }
     }
     /**
      * übernimmt das Speichern von ganzen Fargen_Antworten arrays
@@ -49,7 +53,7 @@ public class Handle_Save {
      */
     public void save() {
 
-        String userpath =  path + "\\save\\" + filename + ".txt";
+        String userpath =  savePath + File.separator + filename + ".txt";
 
         try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(userpath)))) {
             dos.writeInt(arr.length); //wie viele Fragen Insgesamt
@@ -75,9 +79,10 @@ public class Handle_Save {
     public Fragen_Antworten[] read(String filename){
         if(!check_file_exist(filename)){
             System.out.println("Das File das eingelesen werden soll gibt es nicht");
+            return null;
         }
 
-        String userpath = savePath + filename + ".txt";
+        String userpath = savePath + File.separator + filename + ".txt";
 
         ArrayList<Fragen_Antworten> ret = new ArrayList<>();
 
@@ -103,19 +108,16 @@ public class Handle_Save {
     }
 
     public boolean check_file_exist(String filname){
-        String userpath = path + "\\save\\" + filname + ".txt";
+        String userpath = savePath + File.separator + filname + ".txt";
         File f = new File(userpath);
-        if(f.exists()){
-            return true;
-        }
-        return false;
+        return f.exists();
     }
 
     /**
      * Checks if the save folder exists
      * @return
      */
-    public boolean isSaveFolder(String path){
+    public boolean isSaveFolderExisting(String path){
         Path p = Paths.get(path);
         if(Files.isDirectory(p)){
             return true;

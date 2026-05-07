@@ -14,7 +14,7 @@ public class Connection {
     AI_Operations ai;
     public Connection(){
         p = new Properties();
-        try (FileInputStream fis = new FileInputStream("config.properties")) {
+        try (FileInputStream fis = new FileInputStream("src/main/resources/properties.txt")) {
             p.load(fis);
         } catch (IOException e) {
             e.printStackTrace();

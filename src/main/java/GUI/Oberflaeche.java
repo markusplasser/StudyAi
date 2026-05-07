@@ -9,16 +9,22 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import javafx.scene.input.KeyEvent;
 import java.io.File;
 
 public class Oberflaeche extends Stage {
+    /**
+     * Todo!
+     * TextField für anzAntworten Pro Frage - darf nur Zahlen erlauben!
+     * Umändern das das save File nicht ausgewählt wird sondern nur "FragenFürPhysik" und man keinen Ordner auswählen muss!
+     */
 
     final private Controller controller;
 
     final MenuItem menuCloseMI;
 
     public Button submit, antwort1, antwort2, antwort3;
-    public TextField quelltxt, anz;
+    public TextField quelltxt,anzTF;
 
     public int width = 1000;
     public int height = 600;
@@ -41,10 +47,18 @@ public class Oberflaeche extends Stage {
         Label anzL = new Label("Anzahl der Fragen");
         anzL.setStyle("-fx-font-size: 16px;");
 
-        TextField anzTF = new TextField();
+
+        anzTF = new TextField();
         anzTF.setPromptText("1-15");
         anzTF.setStyle("-fx-font-size: 16px;");
         anzTF.setPrefHeight(40);
+        //Lässt nur Zahlen zu;
+        anzTF.setTextFormatter(new TextFormatter<>(change -> {
+            if (change.getText().matches("[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
 
         Label inputTextL = new Label("Input Text");
         inputTextL.setStyle("-fx-font-size: 16px;");
@@ -85,15 +99,15 @@ public class Oberflaeche extends Stage {
                 speicherOrtTF.setText(selectedDirectory.getAbsolutePath());
             }
         });
-
-        Button submitBTN = new Button("Fragen erstellen");
-        submitBTN.setPrefHeight(45);
-        submitBTN.setStyle(
+        submit = new Button("Fragen erstellen");
+        submit.setPrefHeight(45);
+        submit.setStyle(
                 "-fx-font-size: 16px;" +
                         "-fx-background-color: #222222;" +
                         "-fx-text-fill: white;" +
                         "-fx-background-radius: 8;"
         );
+        submit.setOnAction(e -> {controller.handle(e);});
 
         fragenErstellenVB.getChildren().addAll(
                 titelL,
@@ -103,7 +117,7 @@ public class Oberflaeche extends Stage {
                 inputTextTA,
                 speicherOrtL,
                 speicherOrtHB,
-                submitBTN
+                submit
         );
 
         /*
@@ -207,7 +221,7 @@ public class Oberflaeche extends Stage {
         fragenDateiTF.prefWidthProperty().bind(scene.widthProperty().multiply(0.55));
         fragenDateiBTN.prefWidthProperty().bind(scene.widthProperty().multiply(0.18));
 
-        submitBTN.prefWidthProperty().bind(scene.widthProperty().multiply(0.25));
+        submit.prefWidthProperty().bind(scene.widthProperty().multiply(0.25));
         fragenStartenBTN.prefWidthProperty().bind(scene.widthProperty().multiply(0.25));
 
         setScene(scene);
