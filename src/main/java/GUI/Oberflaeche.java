@@ -17,6 +17,9 @@ public class Oberflaeche extends Stage {
      * Todo!
      * TextField für anzAntworten Pro Frage - darf nur Zahlen erlauben!
      * Umändern das das save File nicht ausgewählt wird sondern nur "FragenFürPhysik" und man keinen Ordner auswählen muss!
+     * Abfragen von Fragen!!
+     *
+     *
      */
 
     final private Controller controller;
@@ -107,7 +110,7 @@ public class Oberflaeche extends Stage {
                         "-fx-text-fill: white;" +
                         "-fx-background-radius: 8;"
         );
-        submit.setOnAction(e -> {controller.handle(e);});
+        submit.setOnAction(controller::handle);
 
         fragenErstellenVB.getChildren().addAll(
                 titelL,

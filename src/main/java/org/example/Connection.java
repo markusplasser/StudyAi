@@ -8,13 +8,29 @@ import java.time.Duration;
 import java.util.Properties;
 
 public class Connection {
+
+
+    public static void main(String[] args) throws Exception {
+        Properties p = new Properties();
+        try (FileInputStream fis = new FileInputStream("C:\\Users\\marku\\StudyAi\\properties.txt")) {
+            p.load(fis);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        GeminiService g = new GeminiService(p.getProperty("API_KEY"));
+        System.out.println(g.getString(g.ask("Hallo wie geht es dir")));
+
+    }
+
+
+
     FindAnswersAndQuestions FAAQ;
     Handle_Save hs;
     Properties p;
     AI_Operations ai;
     public Connection(){
         p = new Properties();
-        try (FileInputStream fis = new FileInputStream("src/main/resources/properties.txt")) {
+        try (FileInputStream fis = new FileInputStream("C:\\Users\\marku\\StudyAi\\properties.txt")) {
             p.load(fis);
         } catch (IOException e) {
             e.printStackTrace();
