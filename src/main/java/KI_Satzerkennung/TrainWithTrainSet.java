@@ -2,8 +2,13 @@ package KI_Satzerkennung;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import opennlp.tools.sentdetect.SentenceDetectorME;
+import opennlp.tools.sentdetect.SentenceModel;
+import opennlp.tools.util.Span;
+
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class TrainWithTrainSet {
@@ -15,11 +20,21 @@ public class TrainWithTrainSet {
      * groß > 14
      */
 
+    SentenceDetectorME detector = null;
 
     public static void main(String[] args){
+
         TrainWithTrainSet train = new TrainWithTrainSet();
-        //train.trainWithdata(2,"res/save176.txt");
-        train.runSentenceThrough("Hast du das schon mal gemacht");
+        //train.trainWithdata(1,"res/save136.txt");
+        train.runSentenceThrough("Wie geht es dir");
+    }
+    public TrainWithTrainSet() {
+        try {
+            SentenceModel model = new SentenceModel(new File("de-sent.bin"));
+            detector = new SentenceDetectorME(model);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -121,13 +136,13 @@ public class TrainWithTrainSet {
 
     /**
      * trainiert das Netz epoch -mal
-     * @param net
-     * @param trainSet
-     * @param epoch
-     * @param batchsize
-     * @param anz
-     * @param checkAnswers
-     * @param save
+     * @param net - Network
+     * @param trainSet - Trainset
+     * @param epoch - epoch size
+     * @param batchsize - batch size
+     * @param anz - anz size
+     * @param checkAnswers - boolean for calc loss
+     * @param save - save file
      */
     public void traindata(Network net, TrainSet trainSet, int epoch, int batchsize, int anz, boolean checkAnswers, String save){
         for(int i = 0; i < epoch; i++){
@@ -151,16 +166,25 @@ public class TrainWithTrainSet {
         return totalLoss / samples;
     }
 
-    public String entferneSatzzeichenAmEnde(String text) {
-        if (text == null) return null;
-        // \p{Punct} erkennt alle gängigen Satzzeichen (!, ?, ., ,, etc.)
-        // $ steht für das Ende der Zeile
-        return text.replaceAll("\\p{Punct}+$", "");
+    static String removeSentenceEnding(String sentence) {
+        return sentence.replaceAll("[.!?]+$", "").trim();
+    }
+
+    static String extractSentence(SentenceDetectorME detector, String context, int answerStart) {
+        Span[] spans = detector.sentPosDetect(context);
+
+        for (Span span : spans) {
+            if (span.getStart() <= answerStart && answerStart < span.getEnd()) {
+                return context.substring(span.getStart(), span.getEnd()).trim();
+            }
+        }
+
+        // Fallback falls kein Satz gefunden
+        return context;
     }
 
     /**
      * befüllt und gibt ein TrainSet zurück
-     * + entweder lange oder kurze Sätze befüllen
      * @param trainSet - Trainset
      * @param length - länge des Netzbereiches das triniert wird
      * @return {@link TrainSet}
@@ -169,39 +193,31 @@ public class TrainWithTrainSet {
         try {
             //aus dem Internet für das dataset
             //lässt einen auf alle Sätze des datasets zugreifen
-            File jsonFile = new File("Translated_German_SQuAD-Train-v1.1.json");
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(jsonFile);
+            JsonNode root = mapper.readTree(new File("Translated_German_SQuAD-Train-v1.1.json"));
 
             List<String> allQuestions = new ArrayList<>();
             List<String> allAnswers = new ArrayList<>();
 
-            // 2. Durch die SQuAD-Struktur iterieren
-            JsonNode dataArray = root.get("data");
-            for (JsonNode article : dataArray) {
+
+            for (JsonNode article : root.get("data")) {
                 for (JsonNode paragraph : article.get("paragraphs")) {
-                    String context = paragraph.get("context").asText();
-                    String[] sentences = context.split("(?<=[.!?])\\s+");
-
                     for (JsonNode qa : paragraph.get("qas")) {
-                        // Frage hinzufügen
-                        allQuestions.add(entferneSatzzeichenAmEnde(qa.get("question").asText()));
+                        JsonNode answersNode = qa.get("answers");
+                        if (answersNode == null || answersNode.isEmpty()) continue;
 
-                        // Vollständigen Satz aus Kontext nehmen, nicht das kurze Answer-Fragment
-                        if (qa.has("answers") && !qa.get("answers").isEmpty()) {
-                            String answerText = qa.get("answers").get(0).get("text").asText();
+                        String question = qa.get("question").asText();
+                        int answerStart = answersNode.get(0).get("answer_start").asInt();
 
-                            for (String sentence : sentences) {
-                                if (sentence.contains(answerText)
-                                        && sentence.endsWith(".")) {            // vollständiger Satz
-                                    allAnswers.add(entferneSatzzeichenAmEnde(sentence.trim()));
-                                    break;
-                                }
-                            }
-                        }
+                        // Ganzen Satz aus Context extrahieren
+                        String fullSentence = extractSentence(detector,paragraph.get("context").asText(), answerStart);
+
+                        allQuestions.add(removeSentenceEnding(question));
+                        allAnswers.add(removeSentenceEnding(fullSentence));
                     }
                 }
             }
+
 
 
 
@@ -308,6 +324,7 @@ public class TrainWithTrainSet {
             return trainSet;
         } catch (Exception e) {
             System.out.println("Probleme mit dem Befüllen des TrainSets...");
+            e.printStackTrace();
             return null;
         }
     }
