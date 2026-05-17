@@ -1,4 +1,4 @@
-package GUI;
+package org.example.GUI;
 
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
@@ -9,8 +9,9 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import javafx.scene.input.KeyEvent;
 import java.io.File;
+import java.util.Optional;
+import java.util.Properties;
 
 public class Oberflaeche extends Stage {
     /**
@@ -27,13 +28,15 @@ public class Oberflaeche extends Stage {
     final MenuItem menuCloseMI;
 
     public Button submit, antwort1, antwort2, antwort3;
-    public TextField quelltxt,anzTF;
+    public TextField anzTF;
+    public TextArea inputTextTA;
 
     public int width = 1000;
     public int height = 600;
 
-    public Oberflaeche() {
-        controller = new Controller(this);
+    public Oberflaeche(Properties p) {
+
+        controller = new Controller(this, p);
 
         BorderPane root = new BorderPane();
 
@@ -66,7 +69,7 @@ public class Oberflaeche extends Stage {
         Label inputTextL = new Label("Input Text");
         inputTextL.setStyle("-fx-font-size: 16px;");
 
-        TextArea inputTextTA = new TextArea();
+        inputTextTA = new TextArea();
         inputTextTA.setPromptText("Kopiere hier deinen Text hinein...");
         inputTextTA.setWrapText(true);
         inputTextTA.setStyle("-fx-font-size: 15px;");
@@ -230,4 +233,6 @@ public class Oberflaeche extends Stage {
         setScene(scene);
         show();
     }
+
+
 }

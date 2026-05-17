@@ -1,10 +1,12 @@
-package org.example;
+package org.example.manage;
 
 import dev.langchain4j.model.ollama.OllamaChatModel;
 
-import java.time.Duration;
-
 public class AI_Operations {
+    /**
+     * NOT IN USE!!
+     * JUST FOR EARLY TESTING
+     */
 
     private final OllamaChatModel chat;
 

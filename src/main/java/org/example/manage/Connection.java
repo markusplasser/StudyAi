@@ -1,5 +1,5 @@
-package org.example;
-import KI_Satzerkennung.FindAnswersAndQuestions;
+package org.example.manage;
+import org.example.KI_Satzerkennung.FindAnswersAndQuestions;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 
 import java.io.FileInputStream;
@@ -27,22 +27,22 @@ public class Connection {
     FindAnswersAndQuestions FAAQ;
     Handle_Save hs;
     Properties p;
-    AI_Operations ai;
-    public Connection(){
-        p = new Properties();
-        try (FileInputStream fis = new FileInputStream("C:\\Users\\marku\\StudyAi\\properties.txt")) {
-            p.load(fis);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    GeminiService geminiService;
+    public Connection(Properties p){
+        this.p = p;
 
-        hs = new Handle_Save(p.getProperty("saveFolder"));
+        hs = new Handle_Save(p.getProperty("Project_Save_File"));
         FAAQ = new FindAnswersAndQuestions();
         OllamaChatModel chat = OllamaChatModel.builder().baseUrl("http://localhost:8080").modelName("llama3").timeout(Duration.ofMinutes(5)).build();
-        ai = new AI_Operations(chat);
+        geminiService = new GeminiService(p.getProperty("API_KEY"));
     }
     public boolean saveConnection(String inputtxt, int anzFragen, int anzProFrage , String fileName){
-        String aiAnswer = ai.anz_Fragen(inputtxt, anzFragen, anzProFrage);
+        String aiAnswer = null;
+        try {
+            aiAnswer = geminiService.getString(geminiService.ask(geminiService.buildPromt(inputtxt,anzFragen,anzProFrage)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         Fragen_Antworten[] save = FAAQ.find(aiAnswer,anzFragen,anzProFrage);
 

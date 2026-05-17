@@ -1,9 +1,14 @@
 import dev.langchain4j.model.ollama.OllamaChatModel;
-import org.example.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 
 import static org.mockito.Mockito.when;
+
+import org.example.manage.AI_Operations;
+import org.example.manage.Fragen_Antworten;
+import org.example.manage.Handle_Save;
+import org.example.manage.MyException;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.junit.jupiter.MockitoExtension;

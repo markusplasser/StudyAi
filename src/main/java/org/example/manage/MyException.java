@@ -1,4 +1,4 @@
-package org.example;
+package org.example.manage;
 
 public class MyException extends RuntimeException {
     public MyException(String message) {

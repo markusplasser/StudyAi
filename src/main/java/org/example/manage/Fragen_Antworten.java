@@ -1,4 +1,4 @@
-package org.example;
+package org.example.manage;
 
 
 public class Fragen_Antworten {

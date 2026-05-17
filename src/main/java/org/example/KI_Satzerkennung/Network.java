@@ -1,6 +1,10 @@
-package KI_Satzerkennung;
+package org.example.KI_Satzerkennung;
 import java.util.Random;
-import parser.*;
+
+import org.example.KI_Satzerkennung.parser.Attribute;
+import org.example.KI_Satzerkennung.parser.Node;
+import org.example.KI_Satzerkennung.parser.Parser;
+import org.example.KI_Satzerkennung.parser.ParserTools;
 
 import java.util.Arrays;
 

@@ -1,6 +1,6 @@
-package KI_Satzerkennung;
+package org.example.KI_Satzerkennung;
 
-import org.example.Fragen_Antworten;
+import org.example.manage.Fragen_Antworten;
 
 import java.util.ArrayList;
 import java.util.Arrays;

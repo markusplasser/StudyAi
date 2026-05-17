@@ -1,6 +1,6 @@
-package org.example;
+package org.example.manage;
 
-import GUI.Aplication;
+import org.example.GUI.Aplication;
 
 import java.io.File;
 
@@ -23,7 +23,5 @@ public class Main2 {
 
     public static void main(String[] args){
         Aplication.main(args);
-        System.out.println("Hola");
-        System.out.println("Hola2");
     }
 }

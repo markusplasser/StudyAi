@@ -1,5 +1,5 @@
 
-package KI_Satzerkennung;
+package org.example.KI_Satzerkennung;
 
 public class Tokenerkennung {
     final private static String[] listMarker = {"a)","b)","c)","1)","2)","3)","1.","2.","3."};

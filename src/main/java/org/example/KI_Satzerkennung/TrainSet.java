@@ -1,4 +1,4 @@
-package KI_Satzerkennung;
+package org.example.KI_Satzerkennung;
 
 import java.util.ArrayList;
 import java.util.Random;

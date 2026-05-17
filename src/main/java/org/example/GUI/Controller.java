@@ -1,20 +1,22 @@
-package GUI;
+package org.example.GUI;
 
 
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.input.*;
-import org.example.Connection;
+import org.example.manage.Connection;
+
+import java.util.Properties;
 
 public class Controller implements EventHandler<Event> {
 
     final private Oberflaeche o;
     final private Connection c;
 
-    public Controller(Oberflaeche o){
+    public Controller(Oberflaeche o, Properties p){
         this.o = o;
-        c = new  Connection();
+        c = new Connection(p);
     }
     @Override
     public void handle(Event event) {
@@ -50,7 +52,7 @@ public class Controller implements EventHandler<Event> {
 
         if(source == o.submit){
             String anz = o.anzTF.getText();
-            String quell = o.anzTF.getText();
+            String quell = o.inputTextTA.getText();
             if(anz == null || quell == null){
                 return;
             }
@@ -58,10 +60,10 @@ public class Controller implements EventHandler<Event> {
                 o.anzTF.setText("BITTE AUSFÜLLEN");
             }
             if(quell.isEmpty()){
-                o.quelltxt.setText("BITTE AUSFÜLLEN");
+                o.inputTextTA.setText("BITTE AUSFÜLLEN");
             }
-            String time = java.time.LocalTime.now().toString();
-            c.saveConnection(quell,Integer.parseInt(anz),3,time);
+
+            c.saveConnection(quell,Integer.parseInt(anz),3,"test");
         }
     }
 }

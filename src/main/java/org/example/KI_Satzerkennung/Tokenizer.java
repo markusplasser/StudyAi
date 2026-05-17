@@ -1,4 +1,4 @@
-package KI_Satzerkennung;
+package org.example.KI_Satzerkennung;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

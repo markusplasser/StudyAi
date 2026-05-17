@@ -1,4 +1,4 @@
-package parser;
+package org.example.KI_Satzerkennung.parser;
 
 public class ParserTools {
 

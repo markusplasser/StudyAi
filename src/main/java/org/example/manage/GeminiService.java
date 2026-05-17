@@ -1,4 +1,4 @@
-package org.example;
+package org.example.manage;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -11,8 +11,10 @@ public class GeminiService {
 
 
     private final String API_KEY;
+    private final String[] modells = {"gemma-4-31b-it","gemini-2.5-flash","gemini-3.1-flash-lite"};
+    private static int[] rateLimit = {};
     private final String BASE_URL =
-            "https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent";
+            "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent";
 
     private final HttpClient client = HttpClient.newHttpClient();
 
@@ -20,6 +22,7 @@ public class GeminiService {
         API_KEY = apiKey;
     }
 
+    //for gemini-2.5-flash
     public String getString(String responseBody){
         Gson gson = new Gson();
         JsonObject json = gson.fromJson(responseBody, JsonObject.class);
@@ -31,9 +34,12 @@ public class GeminiService {
                 get(0).getAsJsonObject().
                 get("text").getAsString();
     }
+    public String buildPromt(String inputtxt, int ammountQuestions, int ammountAnswerPosibileties){
+        return "Erstelle " + ammountQuestions + " Fragen mit je "+ ammountAnswerPosibileties + " Antworten zu dem nachfolgendem Infotext :" + inputtxt + ". Die Fragen haben Antworten die mit a) b) c) gekennzeichnent sind wobei nur eine richtig. Diese wird mit 'Antwort: ...' angezeigt . Alle Fragen und Antworten auf Detsch.";
+    }
 
     public String ask(String prompt) throws Exception {
-        String fullUrl = BASE_URL + "?key=" + this.API_KEY;
+        String fullUrl = String.format(BASE_URL, modells[1]) + "?key=" + this.API_KEY;
         String body = """
             {
               "contents": [{
@@ -50,8 +56,7 @@ public class GeminiService {
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        // Response parsen (z.B. mit Jackson oder Gson)
-        // response.body() enthält das JSON
+        System.out.println(response.body());
         return response.body();
     }
 }

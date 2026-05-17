@@ -1,4 +1,4 @@
-package org.example;
+package org.example.manage;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -34,9 +34,9 @@ public class Handle_Save {
     }
 
     public Handle_Save(String p){
-        savePath = this.path + File.separator + p;
-        if(!isSaveFolderExisting(savePath)){
-            createSaveFolder(savePath);
+        savePath = p;
+        if(!isSaveFolderExisting(p)){
+            createSaveFolder(p);
         }
 
     }
@@ -67,6 +67,7 @@ public class Handle_Save {
             }
         } catch (IOException e) {
             System.out.println("Fehler beim erzeugen der txt Datei:" + userpath);
+            e.printStackTrace();
         }
     }
 

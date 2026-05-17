@@ -1,4 +1,4 @@
-package parser;
+package org.example.KI_Satzerkennung.parser;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
