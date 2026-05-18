@@ -22,6 +22,7 @@ public class FindAnswersAndQuestions {
         }
         //System.out.println(zeilen);
         String start = zeilen.getFirst();
+        //Iterates to first Question
         int p = 1;
         while(!auswertung(t.runSentenceThrough(removeNumbering(start)),0.5).equals("Frage")){
             start = zeilen.get(p);
