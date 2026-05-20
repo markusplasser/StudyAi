@@ -65,5 +65,25 @@ public class Controller implements EventHandler<Event> {
 
             c.saveConnection(quell,Integer.parseInt(anz),3,"test");
         }
+
+        if (source == o.fragenStarten) {
+            String dateiName = o.fragenDateiTF.getText();
+
+            if (dateiName.isEmpty()) {
+                o.fragenDateiTF.setPromptText("FILENAME AUSFÜLLEN");
+                o.fragenDateiTF.setStyle("-fx-prompt-text-fill: red;");
+            } else {
+                o.fragenDateiTF.setPromptText("Wähle eine Fragen-Datei aus...");
+                o.fragenDateiTF.setStyle("-fx-prompt-text-fill: grey;");
+                o.fragenDateiTF.clear();
+                o.root.setCenter(o.fragenVB);
+            }
+        }
+        if(source == o.itemerstellen){
+            o.root.setCenter(o.fragenErstellenVB);
+        }
+        if(source == o.itemabfragen){
+            o.root.setCenter(o.fragenAbfragenVB);
+        }
     }
 }

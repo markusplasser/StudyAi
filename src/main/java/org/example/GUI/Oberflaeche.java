@@ -25,25 +25,29 @@ public class Oberflaeche extends Stage {
 
     final private Controller controller;
 
-    final MenuItem menuCloseMI;
+    final MenuItem menuCloseMI, itemerstellen, itemabfragen;
 
-    public Button submit, antwort1, antwort2, antwort3;
-    public TextField anzTF;
+    public Button submit, fragenStarten, antwort1, antwort2, antwort3;
+    public TextField anzTF, fragenDateiTF;
     public TextArea inputTextTA;
+    public BorderPane root;
+    public VBox fragenErstellenVB, fragenAbfragenVB, fragenVB;
 
     public int width = 1000;
     public int height = 600;
+
+    public static String savePath;
 
     public Oberflaeche(Properties p) {
 
         controller = new Controller(this, p);
 
-        BorderPane root = new BorderPane();
+        root = new BorderPane();
 
         /*
          * Fragen erstellen
          */
-        VBox fragenErstellenVB = new VBox(15);
+        fragenErstellenVB = new VBox(15);
         fragenErstellenVB.setPadding(new Insets(30));
         fragenErstellenVB.setStyle("-fx-background-color: #f4f4f4;");
 
@@ -52,7 +56,6 @@ public class Oberflaeche extends Stage {
 
         Label anzL = new Label("Anzahl der Fragen");
         anzL.setStyle("-fx-font-size: 16px;");
-
 
         anzTF = new TextField();
         anzTF.setPromptText("1-15");
@@ -74,37 +77,17 @@ public class Oberflaeche extends Stage {
         inputTextTA.setWrapText(true);
         inputTextTA.setStyle("-fx-font-size: 15px;");
 
-        Label speicherOrtL = new Label("Speicherort");
+        Label speicherOrtL = new Label("File Name");
         speicherOrtL.setStyle("-fx-font-size: 16px;");
 
         TextField speicherOrtTF = new TextField();
-        speicherOrtTF.setPromptText("Wähle einen Speicherort aus...");
-        speicherOrtTF.setEditable(false);
+        speicherOrtTF.setPromptText("Gib einen name für das File ein...");
         speicherOrtTF.setStyle("-fx-font-size: 14px;");
         speicherOrtTF.setPrefHeight(40);
 
-        Button speicherOrtBTN = new Button("Ordner wählen");
-        speicherOrtBTN.setPrefHeight(40);
-        speicherOrtBTN.setStyle(
-                "-fx-font-size: 14px;" +
-                        "-fx-background-color: #444444;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-background-radius: 8;"
-        );
-
         HBox speicherOrtHB = new HBox(10);
-        speicherOrtHB.getChildren().addAll(speicherOrtTF, speicherOrtBTN);
+        speicherOrtHB.getChildren().addAll(speicherOrtTF);
 
-        speicherOrtBTN.setOnAction(e -> {
-            DirectoryChooser directoryChooser = new DirectoryChooser();
-            directoryChooser.setTitle("Speicherort auswählen");
-
-            File selectedDirectory = directoryChooser.showDialog(this);
-
-            if (selectedDirectory != null) {
-                speicherOrtTF.setText(selectedDirectory.getAbsolutePath());
-            }
-        });
         submit = new Button("Fragen erstellen");
         submit.setPrefHeight(45);
         submit.setStyle(
@@ -129,7 +112,7 @@ public class Oberflaeche extends Stage {
         /*
          * Fragen abfragen
          */
-        VBox fragenAbfragenVB = new VBox(15);
+        fragenAbfragenVB = new VBox(15);
         fragenAbfragenVB.setPadding(new Insets(30));
         fragenAbfragenVB.setStyle("-fx-background-color: #f4f4f4;");
 
@@ -139,43 +122,17 @@ public class Oberflaeche extends Stage {
         Label fragenDateiL = new Label("Fragen-Datei auswählen");
         fragenDateiL.setStyle("-fx-font-size: 16px;");
 
-        TextField fragenDateiTF = new TextField();
+        fragenDateiTF = new TextField();
         fragenDateiTF.setPromptText("Wähle eine Fragen-Datei aus...");
-        fragenDateiTF.setEditable(false);
         fragenDateiTF.setStyle("-fx-font-size: 14px;");
         fragenDateiTF.setPrefHeight(40);
 
-        Button fragenDateiBTN = new Button("Datei wählen");
-        fragenDateiBTN.setPrefHeight(40);
-        fragenDateiBTN.setStyle(
-                "-fx-font-size: 14px;" +
-                        "-fx-background-color: #444444;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-background-radius: 8;"
-        );
-
         HBox fragenDateiHB = new HBox(10);
-        fragenDateiHB.getChildren().addAll(fragenDateiTF, fragenDateiBTN);
+        fragenDateiHB.getChildren().addAll(fragenDateiTF);
 
-        fragenDateiBTN.setOnAction(e -> {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Fragen-Datei auswählen");
-
-            fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("Textdateien", "*.txt"),
-                    new FileChooser.ExtensionFilter("Alle Dateien", "*.*")
-            );
-
-            File selectedFile = fileChooser.showOpenDialog(this);
-
-            if (selectedFile != null) {
-                fragenDateiTF.setText(selectedFile.getAbsolutePath());
-            }
-        });
-
-        Button fragenStartenBTN = new Button("Fragen starten");
-        fragenStartenBTN.setPrefHeight(45);
-        fragenStartenBTN.setStyle(
+        fragenStarten = new Button("Fragen starten");
+        fragenStarten.setPrefHeight(45);
+        fragenStarten.setStyle(
                 "-fx-font-size: 16px;" +
                         "-fx-background-color: #222222;" +
                         "-fx-text-fill: white;" +
@@ -186,17 +143,30 @@ public class Oberflaeche extends Stage {
                 abfragenTitelL,
                 fragenDateiL,
                 fragenDateiHB,
-                fragenStartenBTN
+                fragenStarten
         );
 
+        fragenStarten.setOnAction(controller::handle);
+        /**
+         * Fragen mit Antwortmöglichkeiten
+         */
+        fragenVB = new VBox(15);
+        fragenVB.setPadding(new Insets(30));
+        fragenVB.setStyle("-fx-background-color: #f4f4f4;");
+        Label frageNummer = new Label("Frage 1");
+
+        fragenVB.getChildren().addAll(
+                frageNummer
+        );
         /*
          * Menu erstellen
          */
-        MenuItem itemerstellen = new MenuItem("Fragen erstellen");
-        MenuItem itemabfragen = new MenuItem("Fragen abfragen");
+         itemerstellen = new MenuItem("Fragen erstellen");
+         itemabfragen = new MenuItem("Fragen abfragen");
 
-        itemerstellen.setOnAction(e -> root.setCenter(fragenErstellenVB));
-        itemabfragen.setOnAction(e -> root.setCenter(fragenAbfragenVB));
+        itemerstellen.setOnAction(controller::handle);
+        itemabfragen.setOnAction(controller::handle);
+        itemerstellen.setOnAction(controller::handle);
 
         Menu navigation = new Menu("Navigation");
         navigation.getItems().setAll(itemerstellen, itemabfragen);
@@ -222,13 +192,11 @@ public class Oberflaeche extends Stage {
         inputTextTA.prefHeightProperty().bind(scene.heightProperty().multiply(0.40));
 
         speicherOrtTF.prefWidthProperty().bind(scene.widthProperty().multiply(0.55));
-        speicherOrtBTN.prefWidthProperty().bind(scene.widthProperty().multiply(0.18));
 
         fragenDateiTF.prefWidthProperty().bind(scene.widthProperty().multiply(0.55));
-        fragenDateiBTN.prefWidthProperty().bind(scene.widthProperty().multiply(0.18));
 
         submit.prefWidthProperty().bind(scene.widthProperty().multiply(0.25));
-        fragenStartenBTN.prefWidthProperty().bind(scene.widthProperty().multiply(0.25));
+        fragenStarten.prefWidthProperty().bind(scene.widthProperty().multiply(0.25));
 
         setScene(scene);
         show();
