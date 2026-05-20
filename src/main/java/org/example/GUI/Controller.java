@@ -17,6 +17,7 @@ public class Controller implements EventHandler<Event> {
     public Controller(Oberflaeche o, Properties p){
         this.o = o;
         c = new Connection(p);
+        c.p
     }
     @Override
     public void handle(Event event) {
