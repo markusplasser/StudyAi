@@ -9,8 +9,17 @@ import static jcuda.driver.JCudaDriver.*;
 
 public class JCudaRuntimeTest {
     public static void main(String[] args) {
-        JCudaDriver.setExceptionsEnabled(true);
+
+        try{
+            JCudaDriver.setExceptionsEnabled(true);
+        }
+        catch(Exception e){
+            System.out.println("No CudaDevice found!");
+            return;
+        }
+
         cuInit(0);
+
         CUdevice device = new CUdevice();
         cuDeviceGet(device, 0);
         CUcontext context = new CUcontext();

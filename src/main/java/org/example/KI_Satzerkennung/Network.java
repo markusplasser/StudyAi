@@ -1,10 +1,18 @@
 package org.example.KI_Satzerkennung;
 import java.util.Random;
 
+import jcuda.CudaException;
 import org.example.KI_Satzerkennung.parser.Attribute;
 import org.example.KI_Satzerkennung.parser.Node;
 import org.example.KI_Satzerkennung.parser.Parser;
 import org.example.KI_Satzerkennung.parser.ParserTools;
+
+//CUDA
+import jcuda.Pointer;
+import jcuda.Sizeof;
+import jcuda.driver.*;
+import jcuda.runtime.*;
+import static jcuda.driver.JCudaDriver.*;
 
 import java.util.Arrays;
 
@@ -307,5 +315,32 @@ public class Network {
         }
         p.close();
         return ne;
+    }
+
+    public boolean CopyHostToDevice(double[] input){
+        if(input == null || input.length == 0){
+            System.out.println("input is null or length == 0");
+            return false;
+        }
+        CUdeviceptr devInput = new CUdeviceptr();
+        try{
+            int returnValAlloc = cuMemAlloc(devInput, (long) input.length * Sizeof.DOUBLE);
+            if(returnValAlloc != CUresult.CUDA_SUCCESS){
+                System.out.println("Error in CUDA Mem Allocation");
+                return false;
+
+            }
+
+            int returnValCopy = cuMemcpyHtoD(devInput, Pointer.to(input), (long) input.length * Sizeof.DOUBLE);
+            if(returnValCopy != CUresult.CUDA_SUCCESS){
+                System.out.println("Error in CUDA Copy Memory");
+                return false;
+            }
+            return true;
+
+        }catch(CudaException e){
+            System.out.println("Error CUDA: " + e.getMessage());
+            return false;
+        }
     }
 }
