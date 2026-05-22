@@ -2,6 +2,8 @@ package org.example.manage;
 
 import org.example.GUI.Aplication;
 import org.example.GUI.Oberflaeche;
+import java.util.*;
+import java.io.*;
 
 import java.io.File;
 
@@ -23,6 +25,20 @@ public class Main2 {
     }
 
     public static void main(String[] args){
+        Properties p = new Properties();
+
+        try (FileInputStream fis = new FileInputStream("C:\\Users\\mysti\\StudyAi\\config.properties")) {
+            p.load(fis);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+        Connection connection = new Connection(p);
+
+        String fileNames = connection.returnFileNames();
+        System.out.println(fileNames);
+
         Aplication.main(args);
+
     }
 }

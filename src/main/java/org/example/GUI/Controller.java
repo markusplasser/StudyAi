@@ -6,6 +6,7 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.input.*;
 import org.example.manage.Connection;
+import org.example.manage.Fragen_Antworten;
 
 import java.util.Properties;
 
@@ -82,7 +83,9 @@ public class Controller implements EventHandler<Event> {
         if(source == o.itemerstellen){
             o.root.setCenter(o.fragenErstellenVB);
         }
-        if(source == o.itemabfragen){
+        if (source == o.itemabfragen) {
+            String fileNames = c.returnFileNames();
+            o.updateFileList(fileNames);
             o.root.setCenter(o.fragenAbfragenVB);
         }
     }

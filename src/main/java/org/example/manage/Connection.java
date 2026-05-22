@@ -2,9 +2,11 @@ package org.example.manage;
 import org.example.KI_Satzerkennung.FindAnswersAndQuestions;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Properties;
 
 public class Connection {
@@ -62,5 +64,28 @@ public class Connection {
             ret[0].setFirstQuestion("Fehler");
         }
         return ret;
+    }
+
+    public String returnFileNames() {
+        String path = p.getProperty("Project_Save_File");
+        File folder = new File(path);
+
+        if (!folder.exists() || !folder.isDirectory()){
+            System.out.println("Ordner existiert nicht!");
+            return "";
+        }
+
+        File[] files = folder.listFiles();
+        if (files == null) {return "";}
+
+        StringBuilder sb = new StringBuilder();
+
+        for (File file : files) {
+            if (file.isFile()) {
+                if (sb.length() > 0) {sb.append(";");}
+                sb.append(file.getName());
+            }
+        }
+        return sb.toString();
     }
 }

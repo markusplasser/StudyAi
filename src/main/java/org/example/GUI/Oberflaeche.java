@@ -28,10 +28,11 @@ public class Oberflaeche extends Stage {
     final MenuItem menuCloseMI, itemerstellen, itemabfragen;
 
     public Button submit, fragenStarten, antwort1, antwort2, antwort3;
-    public TextField anzTF, fragenDateiTF;
+    public TextField anzTF, fragenDateiTF, fragenInhalt;
     public TextArea inputTextTA;
     public BorderPane root;
     public VBox fragenErstellenVB, fragenAbfragenVB, fragenVB;
+    public ListView<String> fileLV;
 
     public int width = 1000;
     public int height = 600;
@@ -130,6 +131,22 @@ public class Oberflaeche extends Stage {
         HBox fragenDateiHB = new HBox(10);
         fragenDateiHB.getChildren().addAll(fragenDateiTF);
 
+        fileLV = new ListView<>();
+        fileLV.setPrefHeight(200);
+        fileLV.setStyle("-fx-font-size: 14px;");
+
+        fileLV.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
+            if (newValue != null) {
+                String fileName = newValue;
+
+                if (fileName.endsWith(".txt")) {
+                    fileName = fileName.substring(0, fileName.length() - 4);
+                }
+
+                fragenDateiTF.setText(fileName);
+            }
+        });
+
         fragenStarten = new Button("Fragen starten");
         fragenStarten.setPrefHeight(45);
         fragenStarten.setStyle(
@@ -143,6 +160,7 @@ public class Oberflaeche extends Stage {
                 abfragenTitelL,
                 fragenDateiL,
                 fragenDateiHB,
+                fileLV,
                 fragenStarten
         );
 
@@ -154,6 +172,8 @@ public class Oberflaeche extends Stage {
         fragenVB.setPadding(new Insets(30));
         fragenVB.setStyle("-fx-background-color: #f4f4f4;");
         Label frageNummer = new Label("Frage 1");
+        fragenInhalt = new TextField();
+
 
         fragenVB.getChildren().addAll(
                 frageNummer
@@ -202,5 +222,19 @@ public class Oberflaeche extends Stage {
         show();
     }
 
+    public void updateFileList(String fileNamesText) {
+        fileLV.getItems().clear();
 
+        if (fileNamesText == null || fileNamesText.isEmpty()) {
+            return;
+        }
+
+        String[] fileNames = fileNamesText.split(";");
+
+        for (String fileName : fileNames) {
+            if (!fileName.isEmpty()) {
+                fileLV.getItems().add(fileName);
+            }
+        }
+    }
 }
