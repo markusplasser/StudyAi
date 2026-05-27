@@ -38,7 +38,7 @@ public class GeminiService {
         return "Erstelle " + ammountQuestions + " Fragen mit je "+ ammountAnswerPosibileties + " Antworten zu dem nachfolgendem Infotext :" + inputtxt + ". Die Fragen haben Antworten die mit a) b) c) gekennzeichnent sind wobei nur eine richtig. Diese wird mit 'Antwort: ...' angezeigt . Alle Fragen und Antworten auf Detsch.Bitte nur die Fragen und Antworten ohne irgend einem anderen Text!!";
     }
 
-    public String ask(String prompt) throws Exception {
+    public String ask(String prompt, int modell) throws Exception {
         String fullUrl = String.format(BASE_URL, modells[1]) + "?key=" + this.API_KEY;
         String body = """
             {

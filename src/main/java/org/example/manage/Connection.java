@@ -12,14 +12,14 @@ public class Connection {
 
     public static void main(String[] args) throws Exception {
         Properties p = new Properties();
-        try (FileInputStream fis = new FileInputStream("C:\\Users\\marku\\StudyAi\\properties.txt")) {
+        try (FileInputStream fis = new FileInputStream("C:\\Users\\marku\\StudyAi\\config.properties")) {
             p.load(fis);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        GeminiService g = new GeminiService(p.getProperty("API_KEY"));
-        System.out.println(g.getString(g.ask("Hallo wie geht es dir")));
-
+        var handleSave = new Handle_Save(p.getProperty("Project_Save_File"));
+        Fragen_Antworten[] fr = handleSave.read("öfjdkls");
+        System.out.println(fr[0].toString());
     }
 
 
@@ -39,9 +39,17 @@ public class Connection {
     public boolean saveConnection(String inputtxt, int anzFragen, int anzProFrage , String fileName){
         String aiAnswer = null;
         try {
-            aiAnswer = geminiService.getString(geminiService.ask(geminiService.buildPromt(inputtxt,anzFragen,anzProFrage)));
+            aiAnswer = geminiService.getString(geminiService.ask(geminiService.buildPromt(inputtxt,anzFragen,anzProFrage),0));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            try {
+                aiAnswer = geminiService.getString(geminiService.ask(geminiService.buildPromt(inputtxt,anzFragen,anzProFrage),1));
+            } catch (Exception ex) {
+                try {
+                    aiAnswer = geminiService.getString(geminiService.ask(geminiService.buildPromt(inputtxt,anzFragen,anzProFrage),2));
+                } catch (Exception exception) {
+                    throw new RuntimeException(exception);
+                }
+            }
         }
 
         Fragen_Antworten[] save = FAAQ.find(aiAnswer,anzFragen,anzProFrage);

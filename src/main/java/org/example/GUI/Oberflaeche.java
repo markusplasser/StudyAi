@@ -17,7 +17,7 @@ public class Oberflaeche extends Stage {
     /**
      * Todo!
      * TextField für anzAntworten Pro Frage - darf nur Zahlen erlauben!
-     * Umändern das das save File nicht ausgewählt wird sondern nur "FragenFürPhysik" und man keinen Ordner auswählen muss!
+     * Umändern dass das save File nicht ausgewählt wird sondern nur "FragenFürPhysik" und man keinen Ordner auswählen muss!
      * Abfragen von Fragen!!
      *
      *
@@ -28,7 +28,7 @@ public class Oberflaeche extends Stage {
     final MenuItem menuCloseMI, itemerstellen, itemabfragen;
 
     public Button submit, fragenStarten, antwort1, antwort2, antwort3;
-    public TextField anzTF, fragenDateiTF;
+    public TextField anzTF, fragenDateiTF,speicherOrtTF;
     public TextArea inputTextTA;
     public BorderPane root;
     public VBox fragenErstellenVB, fragenAbfragenVB, fragenVB;
@@ -80,7 +80,7 @@ public class Oberflaeche extends Stage {
         Label speicherOrtL = new Label("File Name");
         speicherOrtL.setStyle("-fx-font-size: 16px;");
 
-        TextField speicherOrtTF = new TextField();
+        speicherOrtTF = new TextField();
         speicherOrtTF.setPromptText("Gib einen name für das File ein...");
         speicherOrtTF.setStyle("-fx-font-size: 14px;");
         speicherOrtTF.setPrefHeight(40);

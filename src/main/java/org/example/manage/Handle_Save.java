@@ -53,7 +53,7 @@ public class Handle_Save {
      */
     public void save() {
 
-        String userpath =  savePath + File.separator + filename + ".txt";
+        String userpath =  savePath + File.separator + filename + ".bin";
 
         try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(userpath)))) {
             dos.writeInt(arr.length); //wie viele Fragen Insgesamt
@@ -78,12 +78,13 @@ public class Handle_Save {
      * @return
      */
     public Fragen_Antworten[] read(String filename){
+        filename = filename + ".bin";
         if(!check_file_exist(filename)){
             System.out.println("Das File das eingelesen werden soll gibt es nicht");
             return null;
         }
 
-        String userpath = savePath + File.separator + filename + ".txt";
+        String userpath = savePath + File.separator + filename;
 
         ArrayList<Fragen_Antworten> ret = new ArrayList<>();
 
@@ -109,7 +110,7 @@ public class Handle_Save {
     }
 
     public boolean check_file_exist(String filname){
-        String userpath = savePath + File.separator + filname + ".txt";
+        String userpath = savePath + File.separator + filname;
         File f = new File(userpath);
         return f.exists();
     }

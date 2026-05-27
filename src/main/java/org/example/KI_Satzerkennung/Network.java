@@ -343,4 +343,13 @@ public class Network {
             return false;
         }
     }
+
+    public double[] calcGPU(double[] input){
+        for(int i = 0; i < NETWORK_SIZE; i++ ){
+            CopyHostToDevice(input);
+
+        }
+        return new double[NETWORK_SIZE];
+    }
+
 }

@@ -63,7 +63,7 @@ public class Controller implements EventHandler<Event> {
                 o.inputTextTA.setText("BITTE AUSFÜLLEN");
             }
 
-            c.saveConnection(quell,Integer.parseInt(anz),3,"test");
+            c.saveConnection(quell,Integer.parseInt(anz),3,o.speicherOrtTF.getText());
         }
 
         if (source == o.fragenStarten) {
