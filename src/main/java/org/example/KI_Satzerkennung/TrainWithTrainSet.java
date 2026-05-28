@@ -25,8 +25,64 @@ public class TrainWithTrainSet {
     public static void main(String[] args){
 
         TrainWithTrainSet train = new TrainWithTrainSet();
-        //train.trainWithdata(1,"res/save136.txt");
-        train.runSentenceThrough("Wie geht es dir");
+//        train.trainWithdata(4,"res/save328.txt");
+//        train.runSentenceThrough("Wie geht es dir eigentlich");
+        String text = "Wie geht es dir heute";
+
+        long startGPU = System.nanoTime();
+        train.doWithGPU(text);
+        long endGPU = System.nanoTime();
+
+        long startCPU = System.nanoTime();
+        train.runSentenceThrough(text);
+        long endCPU = System.nanoTime();
+
+        double gpuMs = (endGPU - startGPU) / 1_000_000.0;
+        double cpuMs = (endCPU - startCPU) / 1_000_000.0;
+
+        System.out.printf("GPU:  %.3f ms%n", gpuMs);
+        System.out.printf("CPU:  %.3f ms%n", cpuMs);
+        System.out.printf("Diff: %.3f ms (%s schneller)%n",
+                Math.abs(gpuMs - cpuMs),
+                gpuMs < cpuMs ? "GPU" : "CPU"
+        );
+    }
+
+    public void doWithGPU(String text){
+        Tokenizer tk = new Tokenizer();
+        try {
+
+
+            int length = getCategory(text);
+            int targetlength = 41;
+            String save = "res/save328.txt";
+
+            switch (length){
+                case 1:
+                    targetlength = 17;
+                    save = "res/save136.txt";
+                    //System.out.println("Verwendete Länge: 1-kurz");
+                    break;
+                case 2:
+                    targetlength = 22;
+                    save = "res/save176.txt";
+                    System.out.println("Verwendete Länge: 2-mittel-kurz");
+                    break;
+                case 3:
+                    targetlength = 29;
+                    save = "res/save232.txt";
+                    //System.out.println("Verwendete Länge: 3-mittel-lang");
+            }
+            if(targetlength == 41){
+                //System.out.println("Verwendete Länge: 4-lang");
+            }
+            Network n = Network.loadNetwork(save);
+            n.initCUDA();
+            double[] input = tk.tokenizeBatch(new String[]{text}, targetlength)[0];
+            n.checkSentenceGPU(input);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
     public TrainWithTrainSet() {
         try {
@@ -51,10 +107,10 @@ public class TrainWithTrainSet {
             int[] netz4 = {328, 64, 32, 2};
             int[] layers = size == 1 ? netz1 : size == 2 ? netz2 : size == 3 ? netz3 : netz4;
             Network network = Network.loadNetwork(save);
-                    //new Network(5000,8,netz..);
+                    //new Network(5000,8,layers);
             TrainSet set = createSet(size);
 
-            traindata(network,set,500,150,200,true,save);
+            traindata(network,set,1000,150,200,true,save);
             network.saveNetwork(save);
         }catch (Exception e){
             System.out.println("Problem with loading the Network\nPath: " + save + " dose not exist!");

@@ -35,6 +35,15 @@ public class Network {
     private int[] NETWORK_LAYER_SIZE;
     private int INPUT_LAYER_SIZE;
     private int OUTPUT_LAYER_SIZE;
+    private int MAX_LAYER_SIZE;
+
+    // CUDA Felder
+    private CUfunction forwardFunction;
+    private CUdeviceptr d_output;
+    private CUdeviceptr d_outputDeriv;
+    private CUdeviceptr d_weights;
+    private CUdeviceptr d_bias;
+    private CUdeviceptr d_layerSizes;
 
     public Network(int VOCAB_SIZE, int embeddingDim, int... NETWORK_LAYER_SIZE) {
         EMBEDDING_DIM = embeddingDim;
@@ -50,12 +59,17 @@ public class Network {
         err_signal = new double[NETWORK_SIZE][];
         output_derivative = new double[NETWORK_SIZE][];
         embedding = new double[this.VOCAB_SIZE][EMBEDDING_DIM];
+        MAX_LAYER_SIZE = 0;
 
         for(int i = 0; i < NETWORK_SIZE; i++) {
             bias[i] = createRandomArr(NETWORK_LAYER_SIZE[i],-0.5,0.5);
             output[i] = new double[NETWORK_LAYER_SIZE[i]];
             err_signal[i] = new double[NETWORK_LAYER_SIZE[i]];
             output_derivative[i] = new double[NETWORK_LAYER_SIZE[i]];
+
+            if(NETWORK_LAYER_SIZE[i] > MAX_LAYER_SIZE){
+                MAX_LAYER_SIZE = NETWORK_LAYER_SIZE[i];
+            }
             if(i > 0){
                 weights[i] = createRandomArr(NETWORK_LAYER_SIZE[i],NETWORK_LAYER_SIZE[i-1],-0.5,0.5);
             }
@@ -184,6 +198,10 @@ public class Network {
 
     public double[] checkSentence(double[] input){
         return calculate(embedInput(input));
+    }
+
+    public double[] checkSentenceGPU(double[] input){
+        return calcGPU(embedInput(input));
     }
 
     public void update(double eta){
@@ -317,39 +335,145 @@ public class Network {
         return ne;
     }
 
-    public boolean CopyHostToDevice(double[] input){
-        if(input == null || input.length == 0){
-            System.out.println("input is null or length == 0");
-            return false;
+    public double[] calcGPU(double[] input) {
+        // Input in output[0] setzen und flach kopieren
+        output[0] = input;
+        double[] flatOutput = flattenOutput();
+        cuMemcpyHtoD(d_output, Pointer.to(flatOutput), (long) flatOutput.length * Sizeof.DOUBLE);
+
+        // Skalare als Arrays für Pointer.to()
+        int[] pLenOutput     = { flatOutput.length };
+        int[] pLenOutDeriv   = { flatOutput.length }; // gleiche Größe wie output
+        int[] pLenWeights    = { flattenWeights().length };
+        int[] pLenBias       = { flattenBias().length };
+        int[] pLenLayerSizes = { NETWORK_LAYER_SIZE.length };
+        int[] pMaxLayerSize  = { MAX_LAYER_SIZE };
+
+        for (int layer = 1; layer < NETWORK_SIZE; layer++) {
+            int[] pCurrentLayer = { layer };
+            int[] pPrevLayer    = { layer - 1 };
+
+            Pointer kernelParams = Pointer.to(
+                    Pointer.to(d_output),         Pointer.to(pLenOutput),
+                    Pointer.to(d_outputDeriv),    Pointer.to(pLenOutDeriv),
+                    Pointer.to(d_weights),        Pointer.to(pLenWeights),
+                    Pointer.to(d_bias),           Pointer.to(pLenBias),
+                    Pointer.to(d_layerSizes),     Pointer.to(pLenLayerSizes),
+                    Pointer.to(pCurrentLayer),
+                    Pointer.to(pPrevLayer),
+                    Pointer.to(pMaxLayerSize)
+            );
+
+            int neurons   = NETWORK_LAYER_SIZE[layer];
+            int threads   = 256;
+            int blocks    = (neurons + threads - 1) / threads;
+            int sharedMem = MAX_LAYER_SIZE * Sizeof.DOUBLE;
+
+            cuLaunchKernel(forwardFunction,
+                    blocks,  1, 1,
+                    threads, 1, 1,
+                    sharedMem, null,
+                    kernelParams, null
+            );
+            cuCtxSynchronize();
         }
-        CUdeviceptr devInput = new CUdeviceptr();
-        try{
-            int returnValAlloc = cuMemAlloc(devInput, (long) input.length * Sizeof.DOUBLE);
-            if(returnValAlloc != CUresult.CUDA_SUCCESS){
-                System.out.println("Error in CUDA Mem Allocation");
-                return false;
 
-            }
-
-            int returnValCopy = cuMemcpyHtoD(devInput, Pointer.to(input), (long) input.length * Sizeof.DOUBLE);
-            if(returnValCopy != CUresult.CUDA_SUCCESS){
-                System.out.println("Error in CUDA Copy Memory");
-                return false;
-            }
-            return true;
-
-        }catch(CudaException e){
-            System.out.println("Error CUDA: " + e.getMessage());
-            return false;
-        }
+        // Ergebnis des letzten Layers zurückkopieren
+        int lastLayerOffset = (NETWORK_SIZE - 1) * MAX_LAYER_SIZE;
+        double[] result = new double[NETWORK_LAYER_SIZE[NETWORK_SIZE - 1]];
+        cuMemcpyDtoH(
+                Pointer.to(result),
+                d_output.withByteOffset((long) lastLayerOffset * Sizeof.DOUBLE),
+                (long) result.length * Sizeof.DOUBLE
+        );
+        return result;
     }
 
-    public double[] calcGPU(double[] input){
-        for(int i = 0; i < NETWORK_SIZE; i++ ){
-            CopyHostToDevice(input);
 
+
+    public void initCUDA() throws Exception {
+        // CUDA initialisieren
+        JCudaDriver.setExceptionsEnabled(true);
+        cuInit(0);
+        CUdevice device = new CUdevice();
+        cuDeviceGet(device, 0);
+        CUcontext context = new CUcontext();
+        cuCtxCreate(context, 0, device);
+
+        // Kernel laden (.ptx Datei muss kompiliert sein)
+        CUmodule module = new CUmodule();
+        cuModuleLoad(module, "src/main/java/org/example/KI_Satzerkennung/CUDAFile/forward.ptx");
+        forwardFunction = new CUfunction();
+        cuModuleGetFunction(forwardFunction, module, "forward");
+
+        // Flache Arrays für GPU vorbereiten
+        double[] flatWeights    = flattenWeights();
+        double[] flatBias       = flattenBias();
+        double[] flatOutput     = flattenOutput();
+        double[] flatOutDeriv   = flattenOutputDeriv();
+
+        // Speicher allokieren
+        d_output     = new CUdeviceptr();
+        d_outputDeriv= new CUdeviceptr();
+        d_weights    = new CUdeviceptr();
+        d_bias       = new CUdeviceptr();
+        d_layerSizes = new CUdeviceptr();
+
+        cuMemAlloc(d_output,      (long) flatOutput.length    * Sizeof.DOUBLE);
+        cuMemAlloc(d_outputDeriv, (long) flatOutDeriv.length  * Sizeof.DOUBLE);
+        cuMemAlloc(d_weights,     (long) flatWeights.length   * Sizeof.DOUBLE);
+        cuMemAlloc(d_bias,        (long) flatBias.length      * Sizeof.DOUBLE);
+        cuMemAlloc(d_layerSizes,  (long) NETWORK_LAYER_SIZE.length * Sizeof.INT);
+
+        // Weights, Bias und LayerSizes einmalig kopieren (ändern sich nicht)
+        cuMemcpyHtoD(d_weights,    Pointer.to(flatWeights),         (long) flatWeights.length  * Sizeof.DOUBLE);
+        cuMemcpyHtoD(d_bias,       Pointer.to(flatBias),            (long) flatBias.length     * Sizeof.DOUBLE);
+        cuMemcpyHtoD(d_layerSizes, Pointer.to(NETWORK_LAYER_SIZE),  (long) NETWORK_LAYER_SIZE.length * Sizeof.INT);
+    }
+
+    private double[] flattenWeights() {
+        // weights[layer][neuron][prevNeuron] -> [layer * MAX² + neuron * MAX + prevNeuron]
+        double[] flat = new double[NETWORK_SIZE * MAX_LAYER_SIZE * MAX_LAYER_SIZE];
+        for (int l = 1; l < NETWORK_SIZE; l++) {
+            for (int n = 0; n < NETWORK_LAYER_SIZE[l]; n++) {
+                for (int p = 0; p < NETWORK_LAYER_SIZE[l-1]; p++) {
+                    flat[l * MAX_LAYER_SIZE * MAX_LAYER_SIZE + n * MAX_LAYER_SIZE + p] = weights[l][n][p];
+                }
+            }
         }
-        return new double[NETWORK_SIZE];
+        return flat;
+    }
+
+    private double[] flattenBias() {
+        // bias[layer][neuron] -> [layer * MAX + neuron]
+        double[] flat = new double[NETWORK_SIZE * MAX_LAYER_SIZE];
+        for (int l = 0; l < NETWORK_SIZE; l++) {
+            for (int n = 0; n < NETWORK_LAYER_SIZE[l]; n++) {
+                flat[l * MAX_LAYER_SIZE + n] = bias[l][n];
+            }
+        }
+        return flat;
+    }
+
+    private double[] flattenOutput() {
+        // output[layer][neuron] -> [layer * MAX + neuron]
+        double[] flat = new double[NETWORK_SIZE * MAX_LAYER_SIZE];
+        for (int l = 0; l < NETWORK_SIZE; l++) {
+            for (int n = 0; n < NETWORK_LAYER_SIZE[l]; n++) {
+                flat[l * MAX_LAYER_SIZE + n] = output[l][n];
+            }
+        }
+        return flat;
+    }
+
+    private double[] flattenOutputDeriv() {
+        double[] flat = new double[NETWORK_SIZE * MAX_LAYER_SIZE];
+        for (int l = 0; l < NETWORK_SIZE; l++) {
+            for (int n = 0; n < NETWORK_LAYER_SIZE[l]; n++) {
+                flat[l * MAX_LAYER_SIZE + n] = output_derivative[l][n];
+            }
+        }
+        return flat;
     }
 
 }

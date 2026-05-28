@@ -40,7 +40,7 @@ public class FindAnswersAndQuestions {
             String[] content = new String[AntwortenProFrage];
             for(int j = 0; j < AntwortenProFrage; j++){
                 String antwort = removeLettering(zeilen.get(p));
-                if(auswertung(t.runSentenceThrough(zeilen.get(p)),0.2).equals("Antwort")){
+                if(auswertung(t.runSentenceThrough(antwort),0.2).equals("Antwort")){
                     content[j] = antwort;
                 }
 
