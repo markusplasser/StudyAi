@@ -78,6 +78,8 @@ public class Controller implements EventHandler<Event> {
                 o.fragenDateiTF.setStyle("-fx-prompt-text-fill: grey;");
                 o.fragenDateiTF.clear();
                 o.root.setCenter(o.fragenVB);
+                Fragen_Antworten[] fragenArr = c.returnQuestions(dateiName);
+                System.out.println(fragenArr[0].toString());
             }
         }
         if(source == o.itemerstellen){

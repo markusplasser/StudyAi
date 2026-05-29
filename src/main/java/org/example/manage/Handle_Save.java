@@ -78,7 +78,6 @@ public class Handle_Save {
      * @return
      */
     public Fragen_Antworten[] read(String filename){
-        filename = filename + ".bin";
         if(!check_file_exist(filename)){
             System.out.println("Das File das eingelesen werden soll gibt es nicht");
             return null;

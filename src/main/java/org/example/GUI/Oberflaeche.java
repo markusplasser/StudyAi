@@ -5,12 +5,8 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.util.Optional;
 import java.util.Properties;
 
 public class Oberflaeche extends Stage {
@@ -27,8 +23,9 @@ public class Oberflaeche extends Stage {
 
     final MenuItem menuCloseMI, itemerstellen, itemabfragen;
 
-    public Button submit, fragenStarten, antwort1, antwort2, antwort3;
-    public TextField anzTF, fragenDateiTF, fragenInhalt,speicherOrtTF;
+    public Button submit, fragenStarten, nextQuestion, antwort1, antwort2, antwort3 ;
+    public TextField anzTF, fragenDateiTF,speicherOrtTF;
+    public Label frage;
     public TextArea inputTextTA;
     public BorderPane root;
     public VBox fragenErstellenVB, fragenAbfragenVB, fragenVB;
@@ -36,8 +33,6 @@ public class Oberflaeche extends Stage {
 
     public int width = 1000;
     public int height = 600;
-
-    public static String savePath;
 
     public Oberflaeche(Properties p) {
 
@@ -91,12 +86,7 @@ public class Oberflaeche extends Stage {
 
         submit = new Button("Fragen erstellen");
         submit.setPrefHeight(45);
-        submit.setStyle(
-                "-fx-font-size: 16px;" +
-                        "-fx-background-color: #222222;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-background-radius: 8;"
-        );
+        submit.setStyle("-fx-font-size: 16px;" + "-fx-background-color: #222222;" + "-fx-text-fill: white;" + "-fx-background-radius: 8;");
         submit.setOnAction(controller::handle);
 
         fragenErstellenVB.getChildren().addAll(
@@ -114,8 +104,12 @@ public class Oberflaeche extends Stage {
          * Fragen abfragen
          */
         fragenAbfragenVB = new VBox(15);
-        fragenAbfragenVB.setPadding(new Insets(30));
-        fragenAbfragenVB.setStyle("-fx-background-color: #f4f4f4;");
+        GridPane fragenAbfragenGP = new GridPane();
+        fragenAbfragenGP.setPadding(new Insets(30));
+        fragenAbfragenGP.setHgap(25);
+        fragenAbfragenGP.setVgap(15);
+        fragenAbfragenGP.setStyle("-fx-background-color: #f4f4f4;");
+
 
         Label abfragenTitelL = new Label("Fragen abfragen");
         abfragenTitelL.setStyle("-fx-font-size: 28px; -fx-font-weight: bold;");
@@ -127,6 +121,7 @@ public class Oberflaeche extends Stage {
         fragenDateiTF.setPromptText("Wähle eine Fragen-Datei aus...");
         fragenDateiTF.setStyle("-fx-font-size: 14px;");
         fragenDateiTF.setPrefHeight(40);
+        fragenDateiTF.setEditable(false);
 
         HBox fragenDateiHB = new HBox(10);
         fragenDateiHB.getChildren().addAll(fragenDateiTF);
@@ -138,31 +133,21 @@ public class Oberflaeche extends Stage {
         fileLV.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
             if (newValue != null) {
                 String fileName = newValue;
-
-                if (fileName.endsWith(".txt")) {
-                    fileName = fileName.substring(0, fileName.length() - 4);
-                }
-
                 fragenDateiTF.setText(fileName);
             }
         });
 
         fragenStarten = new Button("Fragen starten");
         fragenStarten.setPrefHeight(45);
-        fragenStarten.setStyle(
-                "-fx-font-size: 16px;" +
-                        "-fx-background-color: #222222;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-background-radius: 8;"
-        );
+        fragenStarten.setStyle("-fx-font-size: 16px;" + "-fx-background-color: #222222;" + "-fx-text-fill: white;" + "-fx-background-radius: 8;");
 
-        fragenAbfragenVB.getChildren().addAll(
-                abfragenTitelL,
-                fragenDateiL,
-                fragenDateiHB,
-                fileLV,
-                fragenStarten
-        );
+        fragenAbfragenGP.add(abfragenTitelL, 0, 0, 2, 1);
+        fragenAbfragenGP.add(fragenDateiHB, 0, 2);
+        fragenAbfragenGP.add(fragenStarten, 0, 3);
+        fragenAbfragenGP.add(fragenDateiL, 1, 1);
+        fragenAbfragenGP.add(fileLV, 1, 2, 1, 4);
+
+        fragenAbfragenVB.getChildren().add(fragenAbfragenGP);
 
         fragenStarten.setOnAction(controller::handle);
         /**
@@ -171,13 +156,25 @@ public class Oberflaeche extends Stage {
         fragenVB = new VBox(15);
         fragenVB.setPadding(new Insets(30));
         fragenVB.setStyle("-fx-background-color: #f4f4f4;");
-        Label frageNummer = new Label("Frage 1");
-        fragenInhalt = new TextField();
+
+        frage = new Label("Frage");
+        frage.setWrapText(true);
+        frage.setStyle("-fx-font-size: 18px;" + "-fx-font-weight: bold;");
+
+        antwort1 = new Button("Antwort 1");
+        antwort2 = new Button("Antwort 2");
+        antwort3 = new Button("Antwort 3");
+
+        antwort1.setStyle("-fx-font-size: 16px;");
+        antwort2.setStyle("-fx-font-size: 16px;");
+        antwort3.setStyle("-fx-font-size: 16px;");
+
+        nextQuestion = new Button("Weiter");
 
 
-        fragenVB.getChildren().addAll(
-                frageNummer
-        );
+        fragenVB.getChildren().addAll(frage, antwort1, antwort2, antwort3, nextQuestion);
+
+
         /*
          * Menu erstellen
          */
