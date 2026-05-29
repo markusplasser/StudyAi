@@ -121,8 +121,7 @@ public class Network {
 
 
      /**
-     *Calc. the Cost func
-     * Natürlich nicht selber erfunden!!
+     * Calc. the Cost func
      * Dieses Video erklärt alle schritte Mathematisch.
      * https://www.youtube.com/watch?v=tIeHLnjs5U8
      * @param traget
@@ -160,6 +159,7 @@ public class Network {
             }
         }
 
+        //Updates for the embedding
         for(int i = 0; i < rawIDs.length; i++){
             int tokenID = (int) rawIDs[i];
 
@@ -392,21 +392,27 @@ public class Network {
 
 
     public void initCUDA() throws Exception {
-        // CUDA initialisieren
+
+        //Throws Exceptions and doesn't die silent!! -important for debugging
         JCudaDriver.setExceptionsEnabled(true);
         cuInit(0);
+
+        //Empty GPU device.
+        //device gets set at index 0
         CUdevice device = new CUdevice();
         cuDeviceGet(device, 0);
+
+        //context is the connection to the usable space in the GPU
         CUcontext context = new CUcontext();
         cuCtxCreate(context, 0, device);
 
-        // Kernel laden (.ptx Datei muss kompiliert sein)
+        // load Kernel (.ptx File has to be Compiled - nvcc Compiler)
         CUmodule module = new CUmodule();
         cuModuleLoad(module, "src/main/java/org/example/KI_Satzerkennung/CUDAFile/forward.ptx");
         forwardFunction = new CUfunction();
         cuModuleGetFunction(forwardFunction, module, "forward");
 
-        // Flache Arrays für GPU vorbereiten
+
         double[] flatWeights    = flattenWeights();
         double[] flatBias       = flattenBias();
         double[] flatOutput     = flattenOutput();
@@ -431,6 +437,9 @@ public class Network {
         cuMemcpyHtoD(d_layerSizes, Pointer.to(NETWORK_LAYER_SIZE),  (long) NETWORK_LAYER_SIZE.length * Sizeof.INT);
     }
 
+
+    //Creates 1 dim arr out of multi-dim arr
+
     private double[] flattenWeights() {
         // weights[layer][neuron][prevNeuron] -> [layer * MAX² + neuron * MAX + prevNeuron]
         double[] flat = new double[NETWORK_SIZE * MAX_LAYER_SIZE * MAX_LAYER_SIZE];
@@ -443,9 +452,7 @@ public class Network {
         }
         return flat;
     }
-
     private double[] flattenBias() {
-        // bias[layer][neuron] -> [layer * MAX + neuron]
         double[] flat = new double[NETWORK_SIZE * MAX_LAYER_SIZE];
         for (int l = 0; l < NETWORK_SIZE; l++) {
             for (int n = 0; n < NETWORK_LAYER_SIZE[l]; n++) {
@@ -454,9 +461,7 @@ public class Network {
         }
         return flat;
     }
-
     private double[] flattenOutput() {
-        // output[layer][neuron] -> [layer * MAX + neuron]
         double[] flat = new double[NETWORK_SIZE * MAX_LAYER_SIZE];
         for (int l = 0; l < NETWORK_SIZE; l++) {
             for (int n = 0; n < NETWORK_LAYER_SIZE[l]; n++) {
@@ -465,7 +470,6 @@ public class Network {
         }
         return flat;
     }
-
     private double[] flattenOutputDeriv() {
         double[] flat = new double[NETWORK_SIZE * MAX_LAYER_SIZE];
         for (int l = 0; l < NETWORK_SIZE; l++) {

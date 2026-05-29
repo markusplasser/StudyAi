@@ -9,7 +9,37 @@ import java.util.List;
 
 public class FindAnswersAndQuestions {
 
-    public Fragen_Antworten[] find(String AIAnswertxt, int anzFragen, int AntwortenProFrage){
+    public Fragen_Antworten[] findWithoutAI(String AIAnswertext, int anzFragen, int AntwortenProFragen){
+        Fragen_Antworten[] answer = new Fragen_Antworten[anzFragen];
+
+        Fragen_Antworten[] ret = new Fragen_Antworten[anzFragen];
+        ArrayList<String> zeilen = new ArrayList<>();
+        String[] tmp = AIAnswertext.split("\n");
+        for(int i = 0; i< tmp.length;i++){
+            if(!tmp[i].isEmpty()){
+                zeilen.add(tmp[i]);
+            }
+        }
+        int counter = 0;
+        boolean[] found = {true,false,false};
+        for(int i = 0; i < anzFragen; i++){
+            Fragen_Antworten f = new Fragen_Antworten();
+            f.setFrage(zeilen.get(counter));
+            counter++;
+            String[] content = new String[AntwortenProFragen];
+            for(int j = 0; j < AntwortenProFragen; j++){
+                content[j] = zeilen.get(counter);
+                counter++;
+            }
+            f.setLoesung(found);
+            f.setContent(content);
+            counter++;
+            answer[i] = f;
+        }
+        return answer;
+    }
+
+    public Fragen_Antworten[] findWithAI(String AIAnswertxt, int anzFragen, int AntwortenProFrage){
         TrainWithTrainSet t = new TrainWithTrainSet();
 
         Fragen_Antworten[] ret = new Fragen_Antworten[anzFragen];
@@ -22,55 +52,23 @@ public class FindAnswersAndQuestions {
         }
         //System.out.println(zeilen);
         String start = zeilen.getFirst();
-        //Iterates to first Question
-        int p = 1;
-        while(!auswertung(t.runSentenceThrough(removeNumbering(start)),0.5).equals("Frage")){
-            start = zeilen.get(p);
-            p++;
+
+
+        double[][] arr= new double[anzFragen][];
+
+        for(int i = 0; i < zeilen.size(); i++){
+            String text = removeLettering(zeilen.get(i));
+            arr[i] = t.runSentenceThrough(text);
         }
 
+        //for loop to the first question
+        for(int i = 0; i < arr.length; i++){
+
+        }
 
         for(int i = 0; i < anzFragen; i++){
             Fragen_Antworten add = new Fragen_Antworten();
-            String frage = "";
-            if(i != 0){
-                frage = zeilen.get(p);
-                p++;
-            }
-            String[] content = new String[AntwortenProFrage];
-            for(int j = 0; j < AntwortenProFrage; j++){
-                String antwort = removeLettering(zeilen.get(p));
-                if(auswertung(t.runSentenceThrough(antwort),0.2).equals("Antwort")){
-                    content[j] = antwort;
-                }
-
-                p++;
-            }
-            String richtig = removeAnswerPrefix(zeilen.get(p));
-            //Checkt ob die richtige Antwort auch eine Antwort ist.
-            if(auswertung(t.runSentenceThrough(removeAnswerPrefix(richtig)),0.2).equals("Antwort")){
-                List<String> l = Arrays.asList(content);
-                String right = findMostSimilar(richtig, l);
-                boolean[] loesung = new boolean[AntwortenProFrage];
-                for(int j = 0; j < AntwortenProFrage; j++){
-                    if(right.equals(content[j])){
-                        loesung[j] = true;
-                    }
-                }
-                if( i == 0){
-                    add.setFrage(start);
-                }else{
-                    add.setFrage(frage);
-                }
-                add.setContent(content);
-                add.setLoesung(loesung);
-            }
-            else{
-                System.out.println("Fehler");
-            }
-            p++;
             ret[i] = add;
-            System.out.println("added one!");
         }
         return ret;
     }

@@ -20,8 +20,11 @@ public class Connection {
             e.printStackTrace();
         }
         var handleSave = new Handle_Save(p.getProperty("Project_Save_File"));
-        Fragen_Antworten[] fr = handleSave.read("öfjdkls");
-        System.out.println(fr[0].toString());
+        Fragen_Antworten[] fr = handleSave.read("Alex");
+        for(int i = 0; i< fr.length; i++){
+            System.out.println(fr[i].toString());
+        }
+
     }
 
 
@@ -54,7 +57,7 @@ public class Connection {
             }
         }
 
-        Fragen_Antworten[] save = FAAQ.find(aiAnswer,anzFragen,anzProFrage);
+        Fragen_Antworten[] save = FAAQ.findWithoutAI(aiAnswer,anzFragen,anzProFrage);
 
         //Saves the Questions in a File
         hs.setArr(save);

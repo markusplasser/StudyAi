@@ -1,17 +1,17 @@
 package org.example.KI_Satzerkennung;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.util.Span;
 
-
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-public class TrainWithTrainSet {
+public class TrainWithTrainSet_Test {
     /**
      * Wörter
      * klein <= 6
@@ -21,10 +21,23 @@ public class TrainWithTrainSet {
      */
 
     SentenceDetectorME detector = null;
+    private final Network[] networks;
+    private static final String[] savePaths = new  String[]{"res/save136.txt", "res/save176.txt","res/save232.txt", "res/save328.txt"};
+    private Network activeNet;
 
-    public static void main(String[] args){
+    public TrainWithTrainSet_Test(int netAmount) throws Exception {
+        if(netAmount > savePaths.length || netAmount < 1){
+            throw new Exception("net amount out of range");
+        }
+        networks = new Network[netAmount];
+        for(int i = 0; i < networks.length; i++){
+            networks[i] = Network.loadNetwork(savePaths[i]);
+        }
+    }
 
-        TrainWithTrainSet train = new TrainWithTrainSet();
+    public static void main(String[] args) throws Exception {
+
+        TrainWithTrainSet_Test train = new TrainWithTrainSet_Test(4);
 //        train.trainWithdata(4,"res/save328.txt");
 //        train.runSentenceThrough("Wie geht es dir eigentlich");
         String text = "Wie geht es dir heute";
@@ -47,7 +60,6 @@ public class TrainWithTrainSet {
                 gpuMs < cpuMs ? "GPU" : "CPU"
         );
     }
-
 
     public void doWithGPU(String text){
         Tokenizer tk = new Tokenizer();
@@ -85,7 +97,8 @@ public class TrainWithTrainSet {
             throw new RuntimeException(e);
         }
     }
-    public TrainWithTrainSet() {
+    public TrainWithTrainSet_Test() {
+        networks = new Network[1];
         try {
             SentenceModel model = new SentenceModel(new File("de-sent.bin"));
             detector = new SentenceDetectorME(model);
@@ -129,22 +142,22 @@ public class TrainWithTrainSet {
         try {
             int length = getCategory(txt);
             int targetlength = 41;
-            String save = "res/save328.txt";
 
+            activeNet = networks[3];
             switch (length){
                 case 1:
                     targetlength = 17;
-                    save = "res/save136.txt";
+                    activeNet = networks[0];
                     //System.out.println("Verwendete Länge: 1-kurz");
                     break;
                 case 2:
                     targetlength = 22;
-                    save = "res/save176.txt";
+                    activeNet = networks[1];
                     System.out.println("Verwendete Länge: 2-mittel-kurz");
                     break;
                 case 3:
                     targetlength = 29;
-                    save = "res/save232.txt";
+                    activeNet = networks[2];
                     //System.out.println("Verwendete Länge: 3-mittel-lang");
             }
             if(targetlength == 41){
@@ -154,10 +167,9 @@ public class TrainWithTrainSet {
 
 
             tk.loadTokenizer("res/tokenizer.json");
-            Network network = Network.loadNetwork(save);
 
             double[] input = tk.tokenizeBatch(new String[]{txt}, targetlength)[0];
-            double[] ergebnis =network.checkSentence(input);
+            double[] ergebnis =activeNet.checkSentence(input);
             System.out.println(txt);
             System.out.println("Question: " + ergebnis[0]);
             System.out.println("Statement: " + ergebnis[1]);
