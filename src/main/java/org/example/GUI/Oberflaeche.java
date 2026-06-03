@@ -2,236 +2,310 @@ package org.example.GUI;
 
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.util.Properties;
 
 public class Oberflaeche extends Stage {
-    /**
-     * Todo!
-     * TextField für anzAntworten Pro Frage - darf nur Zahlen erlauben!
-     * Umändern das das save File nicht ausgewählt wird sondern nur "FragenFürPhysik" und man keinen Ordner auswählen muss!
-     * Abfragen von Fragen!!
-     *
-     *
-     */
 
     final private Controller controller;
 
     final MenuItem menuCloseMI, itemerstellen, itemabfragen;
 
-    public Button submit, fragenStarten, nextQuestion, antwort1, antwort2, antwort3 ;
-    public TextField anzTF, fragenDateiTF,speicherOrtTF;
+    public Button submit, fragenStarten, nextQuestion, antwort1, antwort2, antwort3;
+    public TextField anzTF, fragenDateiTF, speicherOrtTF;
     public Label frage;
     public TextArea inputTextTA;
     public BorderPane root;
     public VBox fragenErstellenVB, fragenAbfragenVB, fragenVB;
     public ListView<String> fileLV;
 
-    public int width = 1000;
-    public int height = 600;
+    public int width  = 1020;
+    public int height = 640;
+
+    private static final String BG_DEEP     = "#0F1117";
+    private static final String BG_SURFACE  = "#1A1D27";
+    private static final String BG_CARD     = "#22263A";
+    private static final String BG_INPUT    = "#2A2F45";
+    private static final String ACCENT      = "#7C6AFA";
+    private static final String ACCENT_GLOW = "#9B8DFF";
+    private static final String ACCENT_DIM  = "#3D3570";
+    private static final String TEXT_HI     = "#F0F0FF";
+    private static final String TEXT_MID    = "#9A99B3";
+    private static final String BORDER_COL  = "#2E3250";
+
+    private static final String FIELD_STYLE =
+            "-fx-background-color: " + BG_INPUT + ";" +
+                    "-fx-text-fill: " + TEXT_HI + ";" +
+                    "-fx-prompt-text-fill: " + TEXT_MID + ";" +
+                    "-fx-background-radius: 8;" +
+                    "-fx-border-color: " + BORDER_COL + ";" +
+                    "-fx-border-radius: 8;" +
+                    "-fx-padding: 8 12;" +
+                    "-fx-font-size: 14px;";
+
+    private static final String BTN_ACCENT =
+            "-fx-background-color: " + ACCENT + ";" +
+                    "-fx-text-fill: white;" +
+                    "-fx-font-size: 14px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-background-radius: 10;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-padding: 11 24;";
+
+    private static final String BTN_ACCENT_HOVER =
+            "-fx-background-color: " + ACCENT_GLOW + ";" +
+                    "-fx-text-fill: white;" +
+                    "-fx-font-size: 14px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-background-radius: 10;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-padding: 11 24;";
+
+    private static final String BTN_OUTLINE =
+            "-fx-background-color: " + ACCENT_DIM + ";" +
+                    "-fx-text-fill: " + ACCENT_GLOW + ";" +
+                    "-fx-font-size: 14px;" +
+                    "-fx-background-radius: 10;" +
+                    "-fx-border-color: " + ACCENT + ";" +
+                    "-fx-border-radius: 10;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-padding: 11 24;";
+
+    private static final String BTN_OUTLINE_HOVER =
+            "-fx-background-color: " + ACCENT + ";" +
+                    "-fx-text-fill: white;" +
+                    "-fx-font-size: 14px;" +
+                    "-fx-background-radius: 10;" +
+                    "-fx-border-color: " + ACCENT_GLOW + ";" +
+                    "-fx-border-radius: 10;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-padding: 11 24;";
 
     public Oberflaeche(Properties p) {
-
         controller = new Controller(this, p);
 
         root = new BorderPane();
+        root.setStyle("-fx-background-color: " + BG_DEEP + ";");
 
-        /*
-         * Fragen erstellen
-         */
-        fragenErstellenVB = new VBox(15);
-        fragenErstellenVB.setPadding(new Insets(30));
-        fragenErstellenVB.setStyle("-fx-background-color: #f4f4f4;");
+        buildFragenErstellen();
+        buildFragenAbfragen();
+        buildFragenView();
 
-        Label titelL = new Label("Fragen erstellen");
-        titelL.setStyle("-fx-font-size: 28px; -fx-font-weight: bold;");
-
-        Label anzL = new Label("Anzahl der Fragen");
-        anzL.setStyle("-fx-font-size: 16px;");
-
-        anzTF = new TextField();
-        anzTF.setPromptText("1-15");
-        anzTF.setStyle("-fx-font-size: 16px;");
-        anzTF.setPrefHeight(40);
-        //Lässt nur Zahlen zu;
-        anzTF.setTextFormatter(new TextFormatter<>(change -> {
-            if (change.getText().matches("[0-9]*")) {
-                return change;
-            }
-            return null;
-        }));
-
-        Label inputTextL = new Label("Input Text");
-        inputTextL.setStyle("-fx-font-size: 16px;");
-
-        inputTextTA = new TextArea();
-        inputTextTA.setPromptText("Kopiere hier deinen Text hinein...");
-        inputTextTA.setWrapText(true);
-        inputTextTA.setStyle("-fx-font-size: 15px;");
-
-        Label speicherOrtL = new Label("File Name");
-        speicherOrtL.setStyle("-fx-font-size: 16px;");
-
-        speicherOrtTF = new TextField();
-        speicherOrtTF.setPromptText("Gib einen name für das File ein...");
-        speicherOrtTF.setStyle("-fx-font-size: 14px;");
-        speicherOrtTF.setPrefHeight(40);
-
-        HBox speicherOrtHB = new HBox(10);
-        speicherOrtHB.getChildren().addAll(speicherOrtTF);
-
-        submit = new Button("Fragen erstellen");
-        submit.setPrefHeight(45);
-        submit.setStyle("-fx-font-size: 16px;" + "-fx-background-color: #222222;" + "-fx-text-fill: white;" + "-fx-background-radius: 8;");
-        submit.setOnAction(controller::handle);
-
-        fragenErstellenVB.getChildren().addAll(
-                titelL,
-                anzL,
-                anzTF,
-                inputTextL,
-                inputTextTA,
-                speicherOrtL,
-                speicherOrtHB,
-                submit
-        );
-
-        /*
-         * Fragen abfragen
-         */
-        fragenAbfragenVB = new VBox(15);
-        GridPane fragenAbfragenGP = new GridPane();
-        fragenAbfragenGP.setPadding(new Insets(30));
-        fragenAbfragenGP.setHgap(25);
-        fragenAbfragenGP.setVgap(15);
-        fragenAbfragenGP.setStyle("-fx-background-color: #f4f4f4;");
-
-
-        Label abfragenTitelL = new Label("Fragen abfragen");
-        abfragenTitelL.setStyle("-fx-font-size: 28px; -fx-font-weight: bold;");
-
-        Label fragenDateiL = new Label("Fragen-Datei auswählen");
-        fragenDateiL.setStyle("-fx-font-size: 16px;");
-
-        fragenDateiTF = new TextField();
-        fragenDateiTF.setPromptText("Wähle eine Fragen-Datei aus...");
-        fragenDateiTF.setStyle("-fx-font-size: 14px;");
-        fragenDateiTF.setPrefHeight(40);
-        fragenDateiTF.setEditable(false);
-
-        HBox fragenDateiHB = new HBox(10);
-        fragenDateiHB.getChildren().addAll(fragenDateiTF);
-
-        fileLV = new ListView<>();
-        fileLV.setPrefHeight(200);
-        fileLV.setStyle("-fx-font-size: 14px;");
-
-        fileLV.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
-            if (newValue != null) {
-                String fileName = newValue;
-                fragenDateiTF.setText(fileName);
-            }
-        });
-
-        fragenStarten = new Button("Fragen starten");
-        fragenStarten.setPrefHeight(45);
-        fragenStarten.setStyle("-fx-font-size: 16px;" + "-fx-background-color: #222222;" + "-fx-text-fill: white;" + "-fx-background-radius: 8;");
-
-        fragenAbfragenGP.add(abfragenTitelL, 0, 0, 2, 1);
-        fragenAbfragenGP.add(fragenDateiHB, 0, 2);
-        fragenAbfragenGP.add(fragenStarten, 0, 3);
-        fragenAbfragenGP.add(fragenDateiL, 1, 1);
-        fragenAbfragenGP.add(fileLV, 1, 2, 1, 4);
-
-        fragenAbfragenVB.getChildren().add(fragenAbfragenGP);
-
-        fragenStarten.setOnAction(controller::handle);
-        /**
-         * Fragen mit Antwortmöglichkeiten
-         */
-        fragenVB = new VBox(15);
-        fragenVB.setPadding(new Insets(30));
-        fragenVB.setStyle("-fx-background-color: #f4f4f4;");
-
-        frage = new Label("Frage");
-        frage.setWrapText(true);
-        frage.setStyle("-fx-font-size: 18px;" + "-fx-font-weight: bold;");
-
-        antwort1 = new Button("Antwort 1");
-        antwort2 = new Button("Antwort 2");
-        antwort3 = new Button("Antwort 3");
-
-        antwort1.setStyle("-fx-font-size: 16px;");
-        antwort2.setStyle("-fx-font-size: 16px;");
-        antwort3.setStyle("-fx-font-size: 16px;");
-
-        nextQuestion = new Button("Weiter");
-
-
-        fragenVB.getChildren().addAll(frage, antwort1, antwort2, antwort3, nextQuestion);
-
-
-        /*
-         * Menu erstellen
-         */
-         itemerstellen = new MenuItem("Fragen erstellen");
-         itemabfragen = new MenuItem("Fragen abfragen");
-
+        itemerstellen = new MenuItem("Fragen erstellen");
+        itemabfragen  = new MenuItem("Fragen abfragen");
         itemerstellen.setOnAction(controller::handle);
         itemabfragen.setOnAction(controller::handle);
-        itemerstellen.setOnAction(controller::handle);
-
-        Menu navigation = new Menu("Navigation");
-        navigation.getItems().setAll(itemerstellen, itemabfragen);
 
         menuCloseMI = new MenuItem("_Close");
         menuCloseMI.addEventHandler(ActionEvent.ACTION, controller);
         menuCloseMI.setMnemonicParsing(true);
 
+        Menu navigation = new Menu("Navigation");
+        navigation.getItems().setAll(itemerstellen, itemabfragen);
+
         MenuBar menubar = new MenuBar();
+        menubar.setStyle(
+                "-fx-background-color: " + BG_SURFACE + ";" +
+                        "-fx-border-color: " + BORDER_COL + ";" +
+                        "-fx-border-width: 0 0 1 0;" +
+                        "-fx-padding: 2 10;"
+        );
         menubar.getMenus().setAll(navigation);
 
         root.setTop(menubar);
         root.setCenter(fragenErstellenVB);
 
         Scene scene = new Scene(root, width, height);
+        scene.setFill(Color.web(BG_DEEP));
 
-        /*
-         * Größen prozentuell zur Fenstergröße
-         */
-        anzTF.prefWidthProperty().bind(scene.widthProperty().multiply(0.25));
-
-        inputTextTA.prefWidthProperty().bind(scene.widthProperty().multiply(0.75));
-        inputTextTA.prefHeightProperty().bind(scene.heightProperty().multiply(0.40));
-
+        anzTF.prefWidthProperty().bind(scene.widthProperty().multiply(0.28));
+        inputTextTA.prefWidthProperty().bind(scene.widthProperty().multiply(0.72));
+        inputTextTA.prefHeightProperty().bind(scene.heightProperty().multiply(0.38));
         speicherOrtTF.prefWidthProperty().bind(scene.widthProperty().multiply(0.55));
-
-        fragenDateiTF.prefWidthProperty().bind(scene.widthProperty().multiply(0.55));
-
-        submit.prefWidthProperty().bind(scene.widthProperty().multiply(0.25));
-        fragenStarten.prefWidthProperty().bind(scene.widthProperty().multiply(0.25));
+        fragenDateiTF.prefWidthProperty().bind(scene.widthProperty().multiply(0.38));
+        submit.prefWidthProperty().bind(scene.widthProperty().multiply(0.22));
+        fragenStarten.prefWidthProperty().bind(scene.widthProperty().multiply(0.22));
 
         setScene(scene);
         show();
     }
 
+    private Label sectionLabel(String text) {
+        Label l = new Label(text);
+        l.setStyle(
+                "-fx-font-size: 11px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-text-fill: " + TEXT_MID + ";"
+        );
+        return l;
+    }
+
+    private Label titleLabel(String text) {
+        Label l = new Label(text);
+        l.setStyle(
+                "-fx-font-size: 24px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-text-fill: " + TEXT_HI + ";"
+        );
+        return l;
+    }
+
+    private Separator darkSep() {
+        Separator s = new Separator();
+        s.setStyle("-fx-background-color: " + BORDER_COL + "; -fx-opacity: 1;");
+        return s;
+    }
+
+    private void buildFragenErstellen() {
+        anzTF        = styledTextField("1 – 15");
+        inputTextTA  = styledTextArea("Kopiere hier deinen Text hinein...");
+        speicherOrtTF = styledTextField("Name für die Datei...");
+        submit       = accentButton("Fragen erstellen");
+
+        anzTF.setPrefHeight(42);
+        speicherOrtTF.setPrefHeight(42);
+        submit.setOnAction(controller::handle);
+
+        anzTF.setTextFormatter(new TextFormatter<>(change -> {
+            if (change.getText().matches("[0-9]*")) return change;
+            return null;
+        }));
+
+        fragenErstellenVB = new VBox(14);
+        fragenErstellenVB.setPadding(new Insets(38, 44, 38, 44));
+        fragenErstellenVB.setStyle("-fx-background-color: " + BG_DEEP + ";");
+        fragenErstellenVB.getChildren().addAll(
+                titleLabel("Fragen erstellen"), darkSep(),
+                sectionLabel("ANZAHL DER FRAGEN"), anzTF,
+                sectionLabel("EINGABE TEXT"), inputTextTA,
+                sectionLabel("DATEINAME"), speicherOrtTF,
+                submit
+        );
+    }
+
+    private void buildFragenAbfragen() {
+        fragenDateiTF = styledTextField("Wähle eine Datei aus der Liste...");
+        fragenDateiTF.setPrefHeight(42);
+        fragenDateiTF.setEditable(false);
+
+        fileLV = new ListView<>();
+        fileLV.setPrefHeight(220);
+        fileLV.setStyle(
+                "-fx-background-color: " + BG_CARD + ";" +
+                        "-fx-control-inner-background: " + BG_CARD + ";" +
+                        "-fx-border-color: " + BORDER_COL + ";" +
+                        "-fx-border-radius: 8;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-font-size: 13px;" +
+                        "-fx-text-fill: " + TEXT_HI + ";"
+        );
+        fileLV.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
+            if (n != null) fragenDateiTF.setText(n);
+        });
+
+        fragenStarten = accentButton("Fragen starten");
+        fragenStarten.setOnAction(controller::handle);
+
+        GridPane gp = new GridPane();
+        gp.setPadding(new Insets(38, 44, 38, 44));
+        gp.setHgap(32);
+        gp.setVgap(14);
+        gp.setStyle("-fx-background-color: " + BG_DEEP + ";");
+
+        gp.add(titleLabel("Fragen abfragen"),     0, 0, 2, 1);
+        gp.add(darkSep(),                          0, 1, 2, 1);
+        gp.add(sectionLabel("AUSGEWÄHLTE DATEI"), 0, 2);
+        gp.add(fragenDateiTF,                      0, 3);
+        gp.add(fragenStarten,                      0, 4);
+        gp.add(sectionLabel("VERFÜGBARE DATEIEN"),1, 2);
+        gp.add(fileLV,                             1, 3, 1, 3);
+
+        fragenAbfragenVB = new VBox();
+        fragenAbfragenVB.setStyle("-fx-background-color: " + BG_DEEP + ";");
+        fragenAbfragenVB.getChildren().add(gp);
+    }
+
+    private void buildFragenView() {
+        frage = new Label("Frage");
+        frage.setWrapText(true);
+        frage.setMaxWidth(Double.MAX_VALUE);
+        frage.setStyle(
+                "-fx-font-size: 18px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-text-fill: " + TEXT_HI + ";" +
+                        "-fx-background-color: " + BG_CARD + ";" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-border-color: " + ACCENT_DIM + ";" +
+                        "-fx-border-radius: 12;" +
+                        "-fx-padding: 18 22;"
+        );
+
+        antwort1   = outlineButton("Antwort 1");
+        antwort2   = outlineButton("Antwort 2");
+        antwort3   = outlineButton("Antwort 3");
+        nextQuestion = accentButton("Weiter →");
+
+        fragenVB = new VBox(14);
+        fragenVB.setPadding(new Insets(38, 44, 38, 44));
+        fragenVB.setStyle("-fx-background-color: " + BG_DEEP + ";");
+        fragenVB.setAlignment(Pos.TOP_LEFT);
+        fragenVB.getChildren().addAll(frage, antwort1, antwort2, antwort3, nextQuestion);
+    }
+
+    private TextField styledTextField(String prompt) {
+        TextField tf = new TextField();
+        tf.setPromptText(prompt);
+        tf.setStyle(FIELD_STYLE);
+        return tf;
+    }
+
+    private TextArea styledTextArea(String prompt) {
+        TextArea ta = new TextArea();
+        ta.setPromptText(prompt);
+        ta.setWrapText(true);
+        ta.setStyle(
+                "-fx-control-inner-background: " + BG_INPUT + ";" +
+                        "-fx-text-fill: " + TEXT_HI + ";" +
+                        "-fx-prompt-text-fill: " + TEXT_MID + ";" +
+                        "-fx-background-color: " + BG_INPUT + ";" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-border-color: " + BORDER_COL + ";" +
+                        "-fx-border-radius: 8;" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-padding: 8 12;"
+        );
+        return ta;
+    }
+
+    private Button accentButton(String text) {
+        Button btn = new Button(text);
+        btn.setStyle(BTN_ACCENT);
+        btn.setOnMouseEntered(e -> btn.setStyle(BTN_ACCENT_HOVER));
+        btn.setOnMouseExited(e -> btn.setStyle(BTN_ACCENT));
+        return btn;
+    }
+
+    private Button outlineButton(String text) {
+        Button btn = new Button(text);
+        btn.setStyle(BTN_OUTLINE);
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.setPrefHeight(46);
+        btn.setOnMouseEntered(e -> btn.setStyle(BTN_OUTLINE_HOVER));
+        btn.setOnMouseExited(e -> btn.setStyle(BTN_OUTLINE));
+        return btn;
+    }
+
     public void updateFileList(String fileNamesText) {
         fileLV.getItems().clear();
-
-        if (fileNamesText == null || fileNamesText.isEmpty()) {
-            return;
-        }
-
-        String[] fileNames = fileNamesText.split(";");
-
-        for (String fileName : fileNames) {
-            if (!fileName.isEmpty()) {
-                fileLV.getItems().add(fileName);
-            }
+        if (fileNamesText == null || fileNamesText.isEmpty()) return;
+        for (String name : fileNamesText.split(";")) {
+            if (!name.isEmpty()) fileLV.getItems().add(name);
         }
     }
 }

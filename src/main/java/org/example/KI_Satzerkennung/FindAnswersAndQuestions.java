@@ -40,7 +40,12 @@ public class FindAnswersAndQuestions {
     }
 
     public Fragen_Antworten[] findWithAI(String AIAnswertxt, int anzFragen, int AntwortenProFrage){
-        TrainWithTrainSet t = new TrainWithTrainSet();
+        TrainWithTrainSet t = null;
+        try {
+            t = new TrainWithTrainSet();
+        } catch (Exception e) {
+            return null;
+        }
 
         Fragen_Antworten[] ret = new Fragen_Antworten[anzFragen];
         ArrayList<String> zeilen = new ArrayList<>();

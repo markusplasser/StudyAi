@@ -24,7 +24,6 @@ public class Connection {
         for(int i = 0; i< fr.length; i++){
             System.out.println(fr[i].toString());
         }
-
     }
 
 
@@ -41,23 +40,30 @@ public class Connection {
         OllamaChatModel chat = OllamaChatModel.builder().baseUrl("http://localhost:8080").modelName("llama3").timeout(Duration.ofMinutes(5)).build();
         geminiService = new GeminiService(p.getProperty("API_KEY"));
     }
+
     public boolean saveConnection(String inputtxt, int anzFragen, int anzProFrage , String fileName){
+        if(true){
+            return false;
+        }
         String aiAnswer = null;
-        try {
-            aiAnswer = geminiService.getString(geminiService.ask(geminiService.buildPromt(inputtxt,anzFragen,anzProFrage),0));
-        } catch (Exception e) {
-            try {
-                aiAnswer = geminiService.getString(geminiService.ask(geminiService.buildPromt(inputtxt,anzFragen,anzProFrage),1));
-            } catch (Exception ex) {
-                try {
-                    aiAnswer = geminiService.getString(geminiService.ask(geminiService.buildPromt(inputtxt,anzFragen,anzProFrage),2));
-                } catch (Exception exception) {
-                    throw new RuntimeException(exception);
-                }
+
+        for(int models = 0; models < 3; models++){
+            aiAnswer = geminiService.ask(geminiService.buildPromt(inputtxt,anzFragen,anzProFrage), models);
+            if(aiAnswer != null){
+                break;
             }
         }
+        if(aiAnswer == null){
+            return false;
+        }
 
-        Fragen_Antworten[] save = FAAQ.findWithoutAI(aiAnswer,anzFragen,anzProFrage);
+        Fragen_Antworten[] save = new  Fragen_Antworten[anzFragen];
+        try{
+            save = FAAQ.findWithAI(aiAnswer,anzFragen,anzProFrage);
+        } catch(NullPointerException e){
+            save = FAAQ.findWithoutAI(aiAnswer,anzFragen,anzProFrage);
+        }
+
 
         //Saves the Questions in a File
         hs.setArr(save);

@@ -7,7 +7,7 @@ import javafx.event.EventHandler;
 import javafx.scene.input.*;
 import org.example.manage.Connection;
 import org.example.manage.Fragen_Antworten;
-
+import org.example.GUI.*;
 import java.util.Properties;
 
 public class Controller implements EventHandler<Event> {
@@ -64,7 +64,11 @@ public class Controller implements EventHandler<Event> {
                 o.inputTextTA.setText("BITTE AUSFÜLLEN");
             }
 
-            c.saveConnection(quell,Integer.parseInt(anz),3,o.speicherOrtTF.getText());
+            boolean b = c.saveConnection(quell,Integer.parseInt(anz),3,o.speicherOrtTF.getText());
+
+            if(!b){
+                MyAlertFX alertFX = new  MyAlertFX();
+            }
         }
 
         if (source == o.fragenStarten) {

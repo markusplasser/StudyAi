@@ -1,5 +1,6 @@
 package org.example.manage;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -11,6 +12,7 @@ public class GeminiService {
 
 
     private final String API_KEY;
+
     private final String[] modells = {"gemma-4-31b-it","gemini-2.5-flash","gemini-3.1-flash-lite"};
     private static int[] rateLimit = {};
     private final String BASE_URL =
@@ -38,8 +40,10 @@ public class GeminiService {
         return "Erstelle " + ammountQuestions + " Fragen mit je "+ ammountAnswerPosibileties + " Antworten zu dem nachfolgendem Infotext :" + inputtxt + ". Die Fragen haben Antworten die mit a) b) c) gekennzeichnent sind wobei nur eine richtig. Diese wird mit 'Antwort: ...' angezeigt . Alle Fragen und Antworten auf Detsch.Bitte nur die Fragen und Antworten ohne irgend einem anderen Text!!";
     }
 
-    public String ask(String prompt, int modell) throws Exception {
-        String fullUrl = String.format(BASE_URL, modells[1]) + "?key=" + this.API_KEY;
+
+
+    public String ask(String prompt, int modell) {
+        String fullUrl = String.format(BASE_URL, modells[modell]) + "?key=" + this.API_KEY;
         String body = """
             {
               "contents": [{
@@ -54,7 +58,14 @@ public class GeminiService {
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            return null;
+        } catch (InterruptedException e) {
+            return null;
+        }
 
         System.out.println(response.body());
         return response.body();

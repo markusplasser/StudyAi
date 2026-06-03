@@ -1,6 +1,7 @@
 package org.example.GUI;
 
 import javafx.application.Application;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 import org.example.manage.AppConfig;
@@ -12,13 +13,13 @@ public class Aplication extends Application {
     private AppConfig appConfig = new AppConfig();
 
     @Override
-    public void init() throws Exception {
+    public void init() {
         appConfig.loadOrInitialize();
 
     }
     @Override
-    public void start(Stage stage) throws Exception {
-        if(appConfig.firstStart()) {
+    public void start(Stage stage) {
+        if(!appConfig.firstStart()) {
             showApiKeyDialog();
         }
         new Oberflaeche(appConfig.getProperties());
@@ -27,8 +28,11 @@ public class Aplication extends Application {
 
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Ersteinrichtung");
-        dialog.setHeaderText("Willkommen! Bitte gib deinen Google AI Studio API-Key ein.");
+        Hyperlink link = new Hyperlink();
+        link.setText("aistudio.google.com");
+        dialog.setHeaderText("Willkommen! Bitte gib deinen Google AI Studio API-Key ein. LINK: " + link);
         dialog.setContentText("API-Key:");
+
 
         dialog.getDialogPane().setExpanded(true);
         Optional<String> result = dialog.showAndWait();

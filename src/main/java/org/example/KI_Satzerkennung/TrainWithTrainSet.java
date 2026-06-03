@@ -21,10 +21,18 @@ public class TrainWithTrainSet {
      */
 
     SentenceDetectorME detector = null;
+    private Network activeNetwork = null;
+    private final Network[] networks = new Network[names.length];
+    private static final String[] names = {"save136.txt","save176.txt","save232.txt","save328.txt"};
 
     public static void main(String[] args){
 
-        TrainWithTrainSet train = new TrainWithTrainSet();
+        TrainWithTrainSet train = null;
+        try {
+            train = new TrainWithTrainSet();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 //        train.trainWithdata(4,"res/save328.txt");
 //        train.runSentenceThrough("Wie geht es dir eigentlich");
         String text = "Wie geht es dir heute";
@@ -52,40 +60,19 @@ public class TrainWithTrainSet {
     public void doWithGPU(String text){
         Tokenizer tk = new Tokenizer();
         try {
-
-
-            int length = getCategory(text);
-            int targetlength = 41;
-            String save = "res/save328.txt";
-
-            switch (length){
-                case 1:
-                    targetlength = 17;
-                    save = "res/save136.txt";
-                    //System.out.println("Verwendete Länge: 1-kurz");
-                    break;
-                case 2:
-                    targetlength = 22;
-                    save = "res/save176.txt";
-                    System.out.println("Verwendete Länge: 2-mittel-kurz");
-                    break;
-                case 3:
-                    targetlength = 29;
-                    save = "res/save232.txt";
-                    //System.out.println("Verwendete Länge: 3-mittel-lang");
-            }
-            if(targetlength == 41){
-                //System.out.println("Verwendete Länge: 4-lang");
-            }
-            Network n = Network.loadNetwork(save);
-            n.initCUDA();
+            int targetlength = getTargetlength(text);
+            tk.loadTokenizer("res/tokenizer.json");
+            activeNetwork.initCUDA();
             double[] input = tk.tokenizeBatch(new String[]{text}, targetlength)[0];
-            n.checkSentenceGPU(input);
+            activeNetwork.checkSentenceGPU(input);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    public TrainWithTrainSet() {
+    public TrainWithTrainSet() throws Exception {
+        for(int i = 0; i < names.length; i++){
+            networks[i] = Network.loadNetwork(names[i]);
+        }
         try {
             SentenceModel model = new SentenceModel(new File("de-sent.bin"));
             detector = new SentenceDetectorME(model);
@@ -127,37 +114,10 @@ public class TrainWithTrainSet {
     public double[] runSentenceThrough(String txt)  {
         Tokenizer tk = new Tokenizer();
         try {
-            int length = getCategory(txt);
-            int targetlength = 41;
-            String save = "res/save328.txt";
-
-            switch (length){
-                case 1:
-                    targetlength = 17;
-                    save = "res/save136.txt";
-                    //System.out.println("Verwendete Länge: 1-kurz");
-                    break;
-                case 2:
-                    targetlength = 22;
-                    save = "res/save176.txt";
-                    System.out.println("Verwendete Länge: 2-mittel-kurz");
-                    break;
-                case 3:
-                    targetlength = 29;
-                    save = "res/save232.txt";
-                    //System.out.println("Verwendete Länge: 3-mittel-lang");
-            }
-            if(targetlength == 41){
-                //System.out.println("Verwendete Länge: 4-lang");
-            }
-
-
-
+            int targetlength = getTargetlength(txt);
             tk.loadTokenizer("res/tokenizer.json");
-            Network network = Network.loadNetwork(save);
-
             double[] input = tk.tokenizeBatch(new String[]{txt}, targetlength)[0];
-            double[] ergebnis =network.checkSentence(input);
+            double[] ergebnis =activeNetwork.checkSentence(input);
             System.out.println(txt);
             System.out.println("Question: " + ergebnis[0]);
             System.out.println("Statement: " + ergebnis[1]);
@@ -166,6 +126,26 @@ public class TrainWithTrainSet {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private int getTargetlength(String txt) {
+        int length = getCategory(txt);
+        int targetlength = 41;
+        activeNetwork = networks[3];
+        switch (length){
+            case 1:
+                targetlength = 17;
+                activeNetwork = networks[0];
+                break;
+            case 2:
+                targetlength = 22;
+                activeNetwork = networks[1];
+                break;
+            case 3:
+                targetlength = 29;
+                activeNetwork = networks[2];
+        }
+        return targetlength;
     }
 
     //helped with testing
@@ -180,7 +160,7 @@ public class TrainWithTrainSet {
     /**
      * erzeugt ein TrainSet und lässt es befüllen
      * liefer das befüllte TrainSet zurück.
-     * @param size
+     * @param size -länge der Trainingssätze
      * @return
      */
     public TrainSet createSet(int size){
