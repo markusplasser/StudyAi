@@ -6,7 +6,6 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.input.*;
 import org.example.manage.Connection;
-import org.example.manage.Fragen_Antworten;
 import java.util.Properties;
 
 public class Controller implements EventHandler<Event> {
@@ -82,8 +81,20 @@ public class Controller implements EventHandler<Event> {
                 o.root.setCenter(o.fragenVB);
 
                 o.fragenArr = c.returnQuestions(o.fragenDateiTF.getText());
-                o.fragenNum = 0;
-                o.zeigeFrageAnIndex(0);
+
+                if(o.fragenArr != null) {
+                    o.fragenNum = 0;
+                    o.anzRichtig = 0;
+                    o.anzFragen = o.fragenArr.length;
+                    o.zeigeFrageAnIndex(0);
+                    o.root.setCenter(o.fragenVB);
+                } else {
+                    System.out.println("Fehler beim Laden der Datei!");
+                }
+
+                for(int i = 0; i < o.fragenArr.length; i++){
+                    System.out.println(o.fragenArr[i].toString());
+                }
             }
         }
         if(source == o.itemerstellen){
@@ -97,17 +108,55 @@ public class Controller implements EventHandler<Event> {
 
         if(source == o.nextQuestion) {
             o.fragenNum++;
-            o.zeigeFrageAnIndex(o.fragenNum);
+            for(int i = 0; i < o.awnserButtons.length; i++){
+                o.awnserButtons[i].setDisable(false);
+            }
+            if(o.fragenNum < o.fragenArr.length) {
+                o.zeigeFrageAnIndex(o.fragenNum);
+
+                o.antwort1.setStyle(o.BTN_OUTLINE);
+                o.antwort2.setStyle(o.BTN_OUTLINE);
+                o.antwort3.setStyle(o.BTN_OUTLINE);
+
+            } else {
+                o.buildErgebniss();
+                o.root.setCenter(o.ergebnissVB);
+            }
         }
 
-        if(source == o.antwort1){
-            o.checkAwnser(o.antwort1, 0, o.fragenNum);
+        if(source == o.antwort1) {
+            if(o.checkAwnser(o.antwort1, 0, o.fragenNum)){
+                o.anzRichtig++;
+                System.out.println(o.anzRichtig);
+                System.out.println(o.anzFragen);
+            }
+            o.showRightAwnser(o.fragenNum);
+            for(int i = 0; i < o.awnserButtons.length; i++){
+                o.awnserButtons[i].setDisable(true);
+            }
         }
-        if(source == o.antwort2){
-            o.checkAwnser(o.antwort2, 1, o.fragenNum);
+        if(source == o.antwort2) {
+            if(o.checkAwnser(o.antwort2, 1, o.fragenNum)){
+                o.anzRichtig++;
+                System.out.println(o.anzRichtig);
+                System.out.println(o.anzFragen);
+            }
+            o.showRightAwnser(o.fragenNum);
+            for(int i = 0; i < o.awnserButtons.length; i++){
+                o.awnserButtons[i].setDisable(true);
+            }
         }
-        if(source == o.antwort3){
-            o.checkAwnser(o.antwort3, 2, o.fragenNum);
+        if(source == o.antwort3) {
+            if(o.checkAwnser(o.antwort3, 2, o.fragenNum)){
+                o.anzRichtig++;
+                System.out.println(o.anzRichtig);
+                System.out.println(o.anzFragen);
+            }
+            o.showRightAwnser(o.fragenNum);
+            for(int i = 0; i < o.awnserButtons.length; i++){
+                o.awnserButtons[i].setDisable(true);
+            }
         }
+
     }
 }

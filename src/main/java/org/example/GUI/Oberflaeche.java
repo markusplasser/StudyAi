@@ -8,7 +8,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import org.example.manage.Connection;
 import org.example.manage.Fragen_Antworten;
 
 import java.util.Properties;
@@ -16,22 +15,25 @@ import java.util.Properties;
 public class Oberflaeche extends Stage {
 
     final private Controller controller;
-    final private Connection c;
 
     final MenuItem menuCloseMI, itemerstellen, itemabfragen;
 
 
-    public Button submit, fragenStarten, nextQuestion, antwort1, antwort2, antwort3;
+    public Button submit, fragenStarten, nextQuestion, antwort1, antwort2, antwort3, home;
     public TextField anzTF, fragenDateiTF, speicherOrtTF;
-    public Label frage;
+    public Label frage, quizFertig, richtig;
     public TextArea inputTextTA;
     public BorderPane root;
-    public VBox fragenErstellenVB, fragenAbfragenVB, fragenVB;
+    public VBox fragenErstellenVB, fragenAbfragenVB, fragenVB, ergebnissVB;
     public ListView<String> fileLV;
+
+    public Button[] awnserButtons;
 
     public int width  = 1020;
     public int height = 640;
     public int fragenNum = 0;
+    public int anzRichtig = 0;
+    public int anzFragen = 0;
 
     public Fragen_Antworten[] fragenArr;
 
@@ -74,7 +76,7 @@ public class Oberflaeche extends Stage {
                     "-fx-cursor: hand;" +
                     "-fx-padding: 11 24;";
 
-    private static final String BTN_OUTLINE =
+    public static final String BTN_OUTLINE =
             "-fx-background-color: " + ACCENT_DIM + ";" +
                     "-fx-text-fill: " + ACCENT_GLOW + ";" +
                     "-fx-font-size: 14px;" +
@@ -84,7 +86,7 @@ public class Oberflaeche extends Stage {
                     "-fx-cursor: hand;" +
                     "-fx-padding: 11 24;";
 
-    private static final String BTN_OUTLINE_HOVER =
+    public static final String BTN_OUTLINE_HOVER =
             "-fx-background-color: " + ACCENT + ";" +
                     "-fx-text-fill: white;" +
                     "-fx-font-size: 14px;" +
@@ -117,7 +119,6 @@ public class Oberflaeche extends Stage {
 
     public Oberflaeche(Properties p) {
         controller = new Controller(this, p);
-        c = new Connection(p);
 
         root = new BorderPane();
         root.setStyle("-fx-background-color: " + BG_DEEP + ";");
@@ -278,6 +279,9 @@ public class Oberflaeche extends Stage {
         antwort1   = outlineButton("Antwort 1");
         antwort2   = outlineButton("Antwort 2");
         antwort3   = outlineButton("Antwort 3");
+
+        awnserButtons = new Button[]{antwort1, antwort2, antwort3};
+
         antwort1.setOnAction(controller::handle);
         antwort2.setOnAction(controller::handle);
         antwort3.setOnAction(controller::handle);
@@ -290,6 +294,98 @@ public class Oberflaeche extends Stage {
         fragenVB.setStyle("-fx-background-color: " + BG_DEEP + ";");
         fragenVB.setAlignment(Pos.TOP_LEFT);
         fragenVB.getChildren().addAll(frage, antwort1, antwort2, antwort3, nextQuestion);
+    }
+
+    public void buildErgebniss() {
+        ergebnissVB = new VBox(20);
+        ergebnissVB.setPadding(new Insets(38, 44, 38, 44));
+        ergebnissVB.setStyle("-fx-background-color: " + BG_DEEP + ";");
+        ergebnissVB.setAlignment(Pos.CENTER);
+
+        Label trophy = new Label("🏆");
+        trophy.setStyle(
+                "-fx-font-size: 52px;" +
+                        "-fx-text-fill: gold;" +
+                        "-fx-font-weight: bold;"
+        );
+
+        quizFertig = new Label("Quiz abgeschlossen!");
+        quizFertig.setStyle(
+                "-fx-text-fill: " + TEXT_HI + ";" +
+                        "-fx-font-size: 26px;" +
+                        "-fx-font-weight: bold;");
+
+        darkSep();
+
+        VBox card = new VBox(14);
+        card.setPadding(new Insets(24, 32, 24, 32));
+        card.setAlignment(Pos.CENTER);
+        card.setStyle(
+                "-fx-background-color: " + BG_CARD + ";" +
+                        "-fx-border-color: " + BORDER_COL + ";" +
+                        "-fx-border-radius: 12;" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-border-width: 1;");
+
+        Label punkte = new Label(anzRichtig + " / " + anzFragen);
+        punkte.setStyle(
+                "-fx-text-fill: " + ACCENT_GLOW + ";" +
+                        "-fx-font-size: 52px;" +
+                        "-fx-font-weight: bold;");
+
+
+        int prozent = anzRichtig/anzFragen * 100;
+        String badgeColor;
+        String badgeBg;
+        String badgeBorder;
+        String badgeText;
+
+        if (prozent >= 70) {
+            badgeColor = "#6bff8f";
+            badgeBg = "#0f3d1f";
+            badgeBorder = "#2e8b57";
+            badgeText = "Ausgezeichnet!";
+        }
+        else if (prozent >= 40) {
+            badgeColor = "#FFD166";
+            badgeBg = "#3d3000";
+            badgeBorder = "#b38600";
+            badgeText = "Gut gemacht!";
+        }
+        else {
+            badgeColor = "#ff6b6b";
+            badgeBg = "#3d1515";
+            badgeBorder = "#e03131";
+            badgeText = "Weiter üben!";
+        }
+
+        Label badge = new Label(prozent + "%  " + badgeText);
+        badge.setStyle(
+                "-fx-background-color: " + badgeBg + ";" +
+                        "-fx-text-fill: " + badgeColor + ";" +
+                        "-fx-font-size: 13px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 20;" +
+                        "-fx-border-color: " + badgeBorder + ";" +
+                        "-fx-border-radius: 20;" +
+                        "-fx-border-width: 1;" +
+                        "-fx-padding: 5 16;");
+
+        richtig = new Label(anzRichtig + " von " + anzFragen + " Fragen richtig beantwortet");
+        richtig.setStyle(
+                "-fx-text-fill: " + TEXT_MID + ";" +
+                        "-fx-font-size: 14px;");
+
+        card.getChildren().addAll(punkte, badge, richtig);
+
+        home = new Button("Zurück zur Übersicht");
+        home.setPrefHeight(46);
+        home.setStyle(BTN_OUTLINE);
+        home.setOnMouseEntered(e -> home.setStyle(BTN_OUTLINE_HOVER));
+        home.setOnMouseExited(e  -> home.setStyle(BTN_OUTLINE));
+        home.setOnAction(controller::handle);
+
+        ergebnissVB.getChildren().addAll(trophy, quizFertig, darkSep(), card, home);
     }
 
     private TextField styledTextField(String prompt) {
@@ -352,18 +448,36 @@ public class Oberflaeche extends Stage {
         antwort3.setText(antworten[2]);
     }
 
-    public void checkAwnser(Button btn, int buttonIndex, int fragenIndex){
-        boolean [] antwort = fragenArr[fragenIndex].getLoesung();
+    public boolean checkAwnser(Button btn, int buttonIndex, int fragenNummer){
+        boolean [] antwort = fragenArr[fragenNummer].getLoesung();
         int loesung = -1;
 
         for(int i = 0; i < antwort.length; i++){
-            if(antwort[i] == true){
+            if(antwort[i]){
                 loesung = i;
             }
         }
 
         if(buttonIndex == loesung){
+            btn.setStyle(BTN_GREEN);
+            return true;
+        }
+        else{
+            btn.setStyle(BTN_RED);
+            return false;
+        }
+    }
 
+    public void showRightAwnser(int fragenNummer) {
+        boolean[] antwort = fragenArr[fragenNummer].getLoesung();
+
+        for (int i = 0; i < antwort.length; i++) {
+            if (antwort[i]) {
+                awnserButtons[i].setStyle(BTN_GREEN);
+            }
+            else{
+                awnserButtons[i].setStyle(BTN_RED);
+            }
         }
     }
 }
