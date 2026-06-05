@@ -20,7 +20,7 @@ public class Oberflaeche extends Stage {
 
 
     public Button submit, fragenStarten, nextQuestion, antwort1, antwort2, antwort3, home, again;
-    public TextField anzTF, fragenDateiTF, speicherOrtTF;
+    public TextField anzTF, anzAntwTF, fragenDateiTF, speicherOrtTF;
     public Label frage, quizFertig, richtig;
     public TextArea inputTextTA;
     public BorderPane root;
@@ -125,7 +125,6 @@ public class Oberflaeche extends Stage {
 
         buildFragenErstellen();
         buildFragenAbfragen();
-        buildFragenView();
 
         itemerstellen = new MenuItem("Fragen erstellen");
         itemabfragen  = new MenuItem("Fragen abfragen");
@@ -193,17 +192,27 @@ public class Oberflaeche extends Stage {
     }
 
     private void buildFragenErstellen() {
-        anzTF        = styledTextField("1 – 15");
-        inputTextTA  = styledTextArea("Kopiere hier deinen Text hinein...");
+        anzTF         = styledTextField("1 – 15");
+        inputTextTA   = styledTextArea("Kopiere hier deinen Text hinein...");
         speicherOrtTF = styledTextField("Name für die Datei...");
-        submit       = accentButton("Fragen erstellen");
+        anzAntwTF     = styledTextField("3-5");
+        submit        = accentButton("Fragen erstellen");
 
         anzTF.setPrefHeight(42);
         speicherOrtTF.setPrefHeight(42);
+        anzAntwTF.setPrefHeight(42);
         submit.setOnAction(controller::handle);
 
+        // Nur Zahlen erlauben
         anzTF.setTextFormatter(new TextFormatter<>(change -> {
             if (change.getText().matches("[0-9]*")) return change;
+            return null;
+        }));
+        anzAntwTF.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.isEmpty() || (newText.matches("[0-9]*") && Integer.parseInt(newText) >= 3 && Integer.parseInt(newText) <= 5)) {
+                return change;
+            }
             return null;
         }));
 
@@ -213,6 +222,7 @@ public class Oberflaeche extends Stage {
         fragenErstellenVB.getChildren().addAll(
                 titleLabel("Fragen erstellen"), darkSep(),
                 sectionLabel("ANZAHL DER FRAGEN"), anzTF,
+                sectionLabel("ANZAHL DER ANTWORTMÖGLICHKEITEN"), anzAntwTF,
                 sectionLabel("EINGABE TEXT"), inputTextTA,
                 sectionLabel("DATEINAME"), speicherOrtTF,
                 submit
@@ -261,7 +271,7 @@ public class Oberflaeche extends Stage {
         fragenAbfragenVB.getChildren().add(gp);
     }
 
-    private void buildFragenView() {
+    public void buildFragenView(int anzAntworten) {
         frage = new Label("Frage");
         frage.setWrapText(true);
         frage.setMaxWidth(Double.MAX_VALUE);
@@ -276,15 +286,11 @@ public class Oberflaeche extends Stage {
                         "-fx-padding: 18 22;"
         );
 
-        antwort1   = outlineButton("Antwort 1");
-        antwort2   = outlineButton("Antwort 2");
-        antwort3   = outlineButton("Antwort 3");
-
-        awnserButtons = new Button[]{antwort1, antwort2, antwort3};
-
-        antwort1.setOnAction(controller::handle);
-        antwort2.setOnAction(controller::handle);
-        antwort3.setOnAction(controller::handle);
+        awnserButtons = new Button[anzAntworten];
+        for(int i = 0; i < anzAntworten; i++) {
+            awnserButtons[i] = outlineButton("Antwort " + (i + 1));
+            awnserButtons[i].setOnAction(controller::handle);
+        }
 
         nextQuestion = accentButton("Weiter →");
         nextQuestion.setOnAction(controller::handle);
@@ -293,7 +299,9 @@ public class Oberflaeche extends Stage {
         fragenVB.setPadding(new Insets(38, 44, 38, 44));
         fragenVB.setStyle("-fx-background-color: " + BG_DEEP + ";");
         fragenVB.setAlignment(Pos.TOP_LEFT);
-        fragenVB.getChildren().addAll(frage, antwort1, antwort2, antwort3, nextQuestion);
+        fragenVB.getChildren().add(frage);
+        for(Button b : awnserButtons) fragenVB.getChildren().add(b);
+        fragenVB.getChildren().add(nextQuestion);
     }
 
     public void buildErgebniss() {
@@ -454,16 +462,13 @@ public class Oberflaeche extends Stage {
         frage.setText(fragenArr[index].getFrage());
         String[] antworten = fragenArr[index].getContent();
 
-        antwort1.setText(antworten[0]);
-        antwort2.setText(antworten[1]);
-        antwort3.setText(antworten[2]);
-
-        for(Button b : awnserButtons) {
-            b.setStyle(BTN_OUTLINE);
-            b.setMouseTransparent(false);
-            b.setOpacity(1.0);
-            b.setOnMouseEntered(e -> b.setStyle(BTN_OUTLINE_HOVER));
-            b.setOnMouseExited(e  -> b.setStyle(BTN_OUTLINE));
+        for(int i = 0; i < awnserButtons.length; i++) {
+            awnserButtons[i].setText(antworten[i]);
+            awnserButtons[i].setStyle(BTN_OUTLINE);
+            awnserButtons[i].setMouseTransparent(false);
+            awnserButtons[i].setOpacity(1.0);
+            awnserButtons[i].setOnMouseEntered(e -> ((Button)e.getSource()).setStyle(BTN_OUTLINE_HOVER));
+            awnserButtons[i].setOnMouseExited(e  -> ((Button)e.getSource()).setStyle(BTN_OUTLINE));
         }
     }
 

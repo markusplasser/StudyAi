@@ -50,19 +50,26 @@ public class Controller implements EventHandler<Event> {
         Object source = event.getSource();
 
         if(source == o.submit){
-            String anz = o.anzTF.getText();
+            String anzFragen = o.anzTF.getText();
+            String anzAntworten = o.anzAntwTF.getText();
             String quell = o.inputTextTA.getText();
-            if(anz == null || quell == null){
+            if(anzFragen == null || quell == null){
                 return;
             }
-            if(anz.isEmpty()){
+            if(anzFragen.isEmpty()){
+                o.anzTF.setText("BITTE AUSFÜLLEN");
+            }
+            if(anzAntworten == null){
+                return;
+            }
+            if(anzAntworten.isEmpty()){
                 o.anzTF.setText("BITTE AUSFÜLLEN");
             }
             if(quell.isEmpty()){
                 o.inputTextTA.setText("BITTE AUSFÜLLEN");
             }
 
-            boolean b = c.saveConnection(quell,Integer.parseInt(anz),3,o.speicherOrtTF.getText());
+            boolean b = c.saveConnection(quell,Integer.parseInt(anzFragen),Integer.parseInt(anzAntworten),o.speicherOrtTF.getText());
 
             if(!b){
                 //MyAlertFX alertFX = new  MyAlertFX();
@@ -81,6 +88,9 @@ public class Controller implements EventHandler<Event> {
                 o.root.setCenter(o.fragenVB);
 
                 o.fragenArr = c.returnQuestions(o.fragenDateiTF.getText());
+
+                int anzAntw = o.fragenArr[0].getContent().length;
+                o.buildFragenView(anzAntw);
 
                 o.fragenNum = 0;
                 o.anzRichtig = 0;
@@ -116,32 +126,16 @@ public class Controller implements EventHandler<Event> {
             }
         }
 
-        if(source == o.antwort1) {
-            if(o.checkAwnser(o.antwort1, 0, o.fragenNum)) {
-                o.anzRichtig++;
-                System.out.println(o.anzRichtig);
-                System.out.println(o.anzFragen);
+        if(o.awnserButtons != null) {
+            for (int i = 0; i < o.awnserButtons.length; i++) {
+                if (source == o.awnserButtons[i]) {
+                    if (o.checkAwnser(o.awnserButtons[i], i, o.fragenNum)) {
+                        o.anzRichtig++;
+                    }
+                    o.showRightAwnser(o.fragenNum);
+                    o.disableAwnserButtons();
+                }
             }
-            o.showRightAwnser(o.fragenNum);
-            o.disableAwnserButtons();
-        }
-        if(source == o.antwort2) {
-            if(o.checkAwnser(o.antwort2, 1, o.fragenNum)){
-                o.anzRichtig++;
-                System.out.println(o.anzRichtig);
-                System.out.println(o.anzFragen);
-            }
-            o.showRightAwnser(o.fragenNum);
-            o.disableAwnserButtons();
-        }
-        if(source == o.antwort3) {
-            if(o.checkAwnser(o.antwort3, 2, o.fragenNum)){
-                o.anzRichtig++;
-                System.out.println(o.anzRichtig);
-                System.out.println(o.anzFragen);
-            }
-            o.showRightAwnser(o.fragenNum);
-            o.disableAwnserButtons();
         }
 
         if(source == o.home){
