@@ -114,8 +114,6 @@ public class Controller implements EventHandler<Event> {
     }
 
     private boolean checkInputs(String anz, String quell, String anzMöglichkeiten){
-
-        boolean check = false;
         if(anz.isEmpty()){
             return true;
         }
