@@ -19,7 +19,7 @@ public class Oberflaeche extends Stage {
     final MenuItem menuCloseMI, itemerstellen, itemabfragen;
 
 
-    public Button submit, fragenStarten, nextQuestion, antwort1, antwort2, antwort3, home;
+    public Button submit, fragenStarten, nextQuestion, antwort1, antwort2, antwort3, home, again;
     public TextField anzTF, fragenDateiTF, speicherOrtTF;
     public Label frage, quizFertig, richtig;
     public TextArea inputTextTA;
@@ -334,19 +334,20 @@ public class Oberflaeche extends Stage {
                         "-fx-font-weight: bold;");
 
 
-        int prozent = anzRichtig/anzFragen * 100;
+        float prozentF = ((float) anzRichtig/anzFragen) * 100;
+        int prozentInt = (int) prozentF;
         String badgeColor;
         String badgeBg;
         String badgeBorder;
         String badgeText;
 
-        if (prozent >= 70) {
+        if (prozentInt >= 70) {
             badgeColor = "#6bff8f";
             badgeBg = "#0f3d1f";
             badgeBorder = "#2e8b57";
             badgeText = "Ausgezeichnet!";
         }
-        else if (prozent >= 40) {
+        else if (prozentInt >= 40) {
             badgeColor = "#FFD166";
             badgeBg = "#3d3000";
             badgeBorder = "#b38600";
@@ -359,7 +360,7 @@ public class Oberflaeche extends Stage {
             badgeText = "Weiter üben!";
         }
 
-        Label badge = new Label(prozent + "%  " + badgeText);
+        Label badge = new Label(prozentInt + "%  " + badgeText);
         badge.setStyle(
                 "-fx-background-color: " + badgeBg + ";" +
                         "-fx-text-fill: " + badgeColor + ";" +
@@ -385,7 +386,17 @@ public class Oberflaeche extends Stage {
         home.setOnMouseExited(e  -> home.setStyle(BTN_OUTLINE));
         home.setOnAction(controller::handle);
 
-        ergebnissVB.getChildren().addAll(trophy, quizFertig, darkSep(), card, home);
+        again = new Button("Quiz wiederholen");
+        again.setPrefHeight(46);
+        again.setStyle(BTN_OUTLINE);
+        again.setOnMouseEntered(e -> again.setStyle(BTN_OUTLINE_HOVER));
+        again.setOnMouseExited(e  -> again.setStyle(BTN_OUTLINE));
+        again.setOnAction(controller::handle);
+
+        HBox btnRow = new HBox(14, home, again);
+        btnRow.setAlignment(Pos.CENTER);
+
+        ergebnissVB.getChildren().addAll(trophy, quizFertig, darkSep(), card, btnRow);
     }
 
     private TextField styledTextField(String prompt) {
@@ -446,6 +457,14 @@ public class Oberflaeche extends Stage {
         antwort1.setText(antworten[0]);
         antwort2.setText(antworten[1]);
         antwort3.setText(antworten[2]);
+
+        for(Button b : awnserButtons) {
+            b.setStyle(BTN_OUTLINE);
+            b.setMouseTransparent(false);
+            b.setOpacity(1.0);
+            b.setOnMouseEntered(e -> b.setStyle(BTN_OUTLINE_HOVER));
+            b.setOnMouseExited(e  -> b.setStyle(BTN_OUTLINE));
+        }
     }
 
     public boolean checkAwnser(Button btn, int buttonIndex, int fragenNummer){
@@ -463,7 +482,6 @@ public class Oberflaeche extends Stage {
             return true;
         }
         else{
-            btn.setStyle(BTN_RED);
             return false;
         }
     }
@@ -478,6 +496,15 @@ public class Oberflaeche extends Stage {
             else{
                 awnserButtons[i].setStyle(BTN_RED);
             }
+        }
+    }
+
+    public void disableAwnserButtons() {
+        for(Button b : awnserButtons) {
+            b.setOnMouseEntered(null);
+            b.setOnMouseExited(null);
+            b.setMouseTransparent(true);
+            b.setOpacity(1.0);
         }
     }
 }

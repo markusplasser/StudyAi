@@ -82,19 +82,11 @@ public class Controller implements EventHandler<Event> {
 
                 o.fragenArr = c.returnQuestions(o.fragenDateiTF.getText());
 
-                if(o.fragenArr != null) {
-                    o.fragenNum = 0;
-                    o.anzRichtig = 0;
-                    o.anzFragen = o.fragenArr.length;
-                    o.zeigeFrageAnIndex(0);
-                    o.root.setCenter(o.fragenVB);
-                } else {
-                    System.out.println("Fehler beim Laden der Datei!");
-                }
-
-                for(int i = 0; i < o.fragenArr.length; i++){
-                    System.out.println(o.fragenArr[i].toString());
-                }
+                o.fragenNum = 0;
+                o.anzRichtig = 0;
+                o.anzFragen = o.fragenArr.length;
+                o.zeigeFrageAnIndex(0);
+                o.root.setCenter(o.fragenVB);
             }
         }
         if(source == o.itemerstellen){
@@ -109,7 +101,7 @@ public class Controller implements EventHandler<Event> {
         if(source == o.nextQuestion) {
             o.fragenNum++;
             for(int i = 0; i < o.awnserButtons.length; i++){
-                o.awnserButtons[i].setDisable(false);
+                o.awnserButtons[i].setMouseTransparent(false);
             }
             if(o.fragenNum < o.fragenArr.length) {
                 o.zeigeFrageAnIndex(o.fragenNum);
@@ -125,15 +117,13 @@ public class Controller implements EventHandler<Event> {
         }
 
         if(source == o.antwort1) {
-            if(o.checkAwnser(o.antwort1, 0, o.fragenNum)){
+            if(o.checkAwnser(o.antwort1, 0, o.fragenNum)) {
                 o.anzRichtig++;
                 System.out.println(o.anzRichtig);
                 System.out.println(o.anzFragen);
             }
             o.showRightAwnser(o.fragenNum);
-            for(int i = 0; i < o.awnserButtons.length; i++){
-                o.awnserButtons[i].setDisable(true);
-            }
+            o.disableAwnserButtons();
         }
         if(source == o.antwort2) {
             if(o.checkAwnser(o.antwort2, 1, o.fragenNum)){
@@ -142,9 +132,7 @@ public class Controller implements EventHandler<Event> {
                 System.out.println(o.anzFragen);
             }
             o.showRightAwnser(o.fragenNum);
-            for(int i = 0; i < o.awnserButtons.length; i++){
-                o.awnserButtons[i].setDisable(true);
-            }
+            o.disableAwnserButtons();
         }
         if(source == o.antwort3) {
             if(o.checkAwnser(o.antwort3, 2, o.fragenNum)){
@@ -153,10 +141,20 @@ public class Controller implements EventHandler<Event> {
                 System.out.println(o.anzFragen);
             }
             o.showRightAwnser(o.fragenNum);
-            for(int i = 0; i < o.awnserButtons.length; i++){
-                o.awnserButtons[i].setDisable(true);
-            }
+            o.disableAwnserButtons();
         }
 
+        if(source == o.home){
+            o.root.setCenter(o.fragenAbfragenVB);
+        }
+        if(source == o.again){
+
+            o.fragenArr = c.returnQuestions(o.fragenDateiTF.getText());
+            o.fragenNum = 0;
+            o.anzRichtig = 0;
+            o.anzFragen = o.fragenArr.length;
+            o.zeigeFrageAnIndex(0);
+            o.root.setCenter(o.fragenVB);
+        }
     }
 }
