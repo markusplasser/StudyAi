@@ -99,5 +99,15 @@ public class Controller implements EventHandler<Event> {
             o.fragenNum++;
             o.zeigeFrageAnIndex(o.fragenNum);
         }
+
+        if(source == o.antwort1){
+            o.checkAwnser(o.antwort1, 0, o.fragenNum);
+        }
+        if(source == o.antwort2){
+            o.checkAwnser(o.antwort2, 1, o.fragenNum);
+        }
+        if(source == o.antwort3){
+            o.checkAwnser(o.antwort3, 2, o.fragenNum);
+        }
     }
 }

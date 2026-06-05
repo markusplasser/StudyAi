@@ -94,6 +94,27 @@ public class Oberflaeche extends Stage {
                     "-fx-cursor: hand;" +
                     "-fx-padding: 11 24;";
 
+    private static final String BTN_RED =
+            "-fx-background-color: #3d1515;" +
+                    "-fx-text-fill: #ff6b6b;" +
+                    "-fx-font-size: 14px;" +
+                    "-fx-background-radius: 10;" +
+                    "-fx-border-color: #e03131;" +
+                    "-fx-border-radius: 10;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-padding: 11 24;";
+
+    private static final String BTN_GREEN =
+            "-fx-background-color: #0f3d1f;" +
+                    "-fx-text-fill: #6bff8f;" +
+                    "-fx-font-size: 14px;" +
+                    "-fx-background-radius: 10;" +
+                    "-fx-border-color: #2e8b57;" +
+                    "-fx-border-radius: 10;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-padding: 11 24;";
+
+
     public Oberflaeche(Properties p) {
         controller = new Controller(this, p);
         c = new Connection(p);
@@ -257,6 +278,9 @@ public class Oberflaeche extends Stage {
         antwort1   = outlineButton("Antwort 1");
         antwort2   = outlineButton("Antwort 2");
         antwort3   = outlineButton("Antwort 3");
+        antwort1.setOnAction(controller::handle);
+        antwort2.setOnAction(controller::handle);
+        antwort3.setOnAction(controller::handle);
 
         nextQuestion = accentButton("Weiter →");
         nextQuestion.setOnAction(controller::handle);
@@ -326,5 +350,20 @@ public class Oberflaeche extends Stage {
         antwort1.setText(antworten[0]);
         antwort2.setText(antworten[1]);
         antwort3.setText(antworten[2]);
+    }
+
+    public void checkAwnser(Button btn, int buttonIndex, int fragenIndex){
+        boolean [] antwort = fragenArr[fragenIndex].getLoesung();
+        int loesung = -1;
+
+        for(int i = 0; i < antwort.length; i++){
+            if(antwort[i] == true){
+                loesung = i;
+            }
+        }
+
+        if(buttonIndex == loesung){
+
+        }
     }
 }
