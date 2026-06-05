@@ -8,14 +8,18 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import org.example.manage.Connection;
+import org.example.manage.Fragen_Antworten;
 
 import java.util.Properties;
 
 public class Oberflaeche extends Stage {
 
     final private Controller controller;
+    final private Connection c;
 
     final MenuItem menuCloseMI, itemerstellen, itemabfragen;
+
 
     public Button submit, fragenStarten, nextQuestion, antwort1, antwort2, antwort3;
     public TextField anzTF, fragenDateiTF, speicherOrtTF;
@@ -27,6 +31,9 @@ public class Oberflaeche extends Stage {
 
     public int width  = 1020;
     public int height = 640;
+    public int fragenNum = 0;
+
+    public Fragen_Antworten[] fragenArr;
 
     private static final String BG_DEEP     = "#0F1117";
     private static final String BG_SURFACE  = "#1A1D27";
@@ -89,6 +96,7 @@ public class Oberflaeche extends Stage {
 
     public Oberflaeche(Properties p) {
         controller = new Controller(this, p);
+        c = new Connection(p);
 
         root = new BorderPane();
         root.setStyle("-fx-background-color: " + BG_DEEP + ";");
@@ -249,7 +257,9 @@ public class Oberflaeche extends Stage {
         antwort1   = outlineButton("Antwort 1");
         antwort2   = outlineButton("Antwort 2");
         antwort3   = outlineButton("Antwort 3");
+
         nextQuestion = accentButton("Weiter →");
+        nextQuestion.setOnAction(controller::handle);
 
         fragenVB = new VBox(14);
         fragenVB.setPadding(new Insets(38, 44, 38, 44));
@@ -307,5 +317,14 @@ public class Oberflaeche extends Stage {
         for (String name : fileNamesText.split(";")) {
             if (!name.isEmpty()) fileLV.getItems().add(name);
         }
+    }
+
+    public void zeigeFrageAnIndex(int index){
+        frage.setText(fragenArr[index].getFrage());
+        String[] antworten = fragenArr[index].getContent();
+
+        antwort1.setText(antworten[0]);
+        antwort2.setText(antworten[1]);
+        antwort3.setText(antworten[2]);
     }
 }

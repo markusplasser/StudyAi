@@ -7,7 +7,6 @@ import javafx.event.EventHandler;
 import javafx.scene.input.*;
 import org.example.manage.Connection;
 import org.example.manage.Fragen_Antworten;
-import org.example.GUI.*;
 import java.util.Properties;
 
 public class Controller implements EventHandler<Event> {
@@ -67,7 +66,7 @@ public class Controller implements EventHandler<Event> {
             boolean b = c.saveConnection(quell,Integer.parseInt(anz),3,o.speicherOrtTF.getText());
 
             if(!b){
-                MyAlertFX alertFX = new  MyAlertFX();
+                //MyAlertFX alertFX = new  MyAlertFX();
             }
         }
 
@@ -80,19 +79,25 @@ public class Controller implements EventHandler<Event> {
             } else {
                 o.fragenDateiTF.setPromptText("Wähle eine Fragen-Datei aus...");
                 o.fragenDateiTF.setStyle("-fx-prompt-text-fill: grey;");
-                o.fragenDateiTF.clear();
                 o.root.setCenter(o.fragenVB);
-                Fragen_Antworten[] fragenArr = c.returnQuestions(dateiName);
-                System.out.println(fragenArr[0].toString());
+
+                o.fragenArr = c.returnQuestions(o.fragenDateiTF.getText());
+                o.fragenNum = 0;
+                o.zeigeFrageAnIndex(0);
             }
         }
         if(source == o.itemerstellen){
             o.root.setCenter(o.fragenErstellenVB);
         }
-        if (source == o.itemabfragen) {
-            String fileNames = c.returnFileNames();
-            o.updateFileList(fileNames);
+
+        if(source == o.itemabfragen){
             o.root.setCenter(o.fragenAbfragenVB);
+            o.updateFileList(c.returnFileNames());
+        }
+
+        if(source == o.nextQuestion) {
+            o.fragenNum++;
+            o.zeigeFrageAnIndex(o.fragenNum);
         }
     }
 }

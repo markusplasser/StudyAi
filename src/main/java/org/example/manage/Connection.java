@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Properties;
 
 public class Connection {
@@ -19,7 +18,7 @@ public class Connection {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        var handleSave = new Handle_Save(p.getProperty("Project_Save_File"));
+        var handleSave = new Handle_Save(p.getProperty("Project_Save_File   "));
         Fragen_Antworten[] fr = handleSave.read("Alex");
         for(int i = 0; i< fr.length; i++){
             System.out.println(fr[i].toString());
