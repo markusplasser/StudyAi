@@ -18,7 +18,7 @@ public class Oberflaeche extends Stage {
     final MenuItem menuCloseMI, itemerstellen, itemabfragen;
 
     public Button submit, fragenStarten, nextQuestion, antwort1, antwort2, antwort3;
-    public TextField anzTF, fragenDateiTF, speicherOrtTF;
+    public TextField anzTF, anzAntwortMöglichkeitenProFrage, fragenDateiTF, speicherOrtTF;
     public Label frage;
     public TextArea inputTextTA;
     public BorderPane root;
@@ -164,11 +164,13 @@ public class Oberflaeche extends Stage {
 
     private void buildFragenErstellen() {
         anzTF        = styledTextField("1 – 15");
+        anzAntwortMöglichkeitenProFrage = styledTextField("2-4");
         inputTextTA  = styledTextArea("Kopiere hier deinen Text hinein...");
         speicherOrtTF = styledTextField("Name für die Datei...");
         submit       = accentButton("Fragen erstellen");
 
         anzTF.setPrefHeight(42);
+        anzAntwortMöglichkeitenProFrage.setPrefHeight(42);
         speicherOrtTF.setPrefHeight(42);
         submit.setOnAction(controller::handle);
 
@@ -177,12 +179,19 @@ public class Oberflaeche extends Stage {
             return null;
         }));
 
+        anzAntwortMöglichkeitenProFrage.setTextFormatter(new TextFormatter<>(change -> {
+            if (change.getText().matches("[2-4]*")) return change;
+            return null;
+        }));
+
+
         fragenErstellenVB = new VBox(14);
         fragenErstellenVB.setPadding(new Insets(38, 44, 38, 44));
         fragenErstellenVB.setStyle("-fx-background-color: " + BG_DEEP + ";");
         fragenErstellenVB.getChildren().addAll(
                 titleLabel("Fragen erstellen"), darkSep(),
                 sectionLabel("ANZAHL DER FRAGEN"), anzTF,
+                sectionLabel("Anzahl der Antwortmöglichkeiten Pro Frage"), anzAntwortMöglichkeitenProFrage,
                 sectionLabel("EINGABE TEXT"), inputTextTA,
                 sectionLabel("DATEINAME"), speicherOrtTF,
                 submit

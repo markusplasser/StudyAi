@@ -9,25 +9,25 @@ import java.util.List;
 
 public class FindAnswersAndQuestions {
 
-    public Fragen_Antworten[] findWithoutAI(String AIAnswertext, int anzFragen, int AntwortenProFragen){
+    public Fragen_Antworten[] findWithoutAI(String AIAnswertext, int anzFragen, int AntwortenProFragen) {
         Fragen_Antworten[] answer = new Fragen_Antworten[anzFragen];
 
         Fragen_Antworten[] ret = new Fragen_Antworten[anzFragen];
         ArrayList<String> zeilen = new ArrayList<>();
         String[] tmp = AIAnswertext.split("\n");
-        for(int i = 0; i< tmp.length;i++){
-            if(!tmp[i].isEmpty()){
+        for (int i = 0; i < tmp.length; i++) {
+            if (!tmp[i].isEmpty()) {
                 zeilen.add(tmp[i]);
             }
         }
         int counter = 0;
-        boolean[] found = {true,false,false};
-        for(int i = 0; i < anzFragen; i++){
+        boolean[] found = {true, false, false};
+        for (int i = 0; i < anzFragen; i++) {
             Fragen_Antworten f = new Fragen_Antworten();
             f.setFrage(zeilen.get(counter));
             counter++;
             String[] content = new String[AntwortenProFragen];
-            for(int j = 0; j < AntwortenProFragen; j++){
+            for (int j = 0; j < AntwortenProFragen; j++) {
                 content[j] = zeilen.get(counter);
                 counter++;
             }
@@ -39,7 +39,7 @@ public class FindAnswersAndQuestions {
         return answer;
     }
 
-    public Fragen_Antworten[] findWithAI(String AIAnswertxt, int anzFragen, int AntwortenProFrage){
+    public Fragen_Antworten[] findWithAI(String AIAnswertxt, int anzFragen, int AntwortenProFrage) {
         TrainWithTrainSet t = null;
         try {
             t = new TrainWithTrainSet();
@@ -50,37 +50,89 @@ public class FindAnswersAndQuestions {
         Fragen_Antworten[] ret = new Fragen_Antworten[anzFragen];
         ArrayList<String> zeilen = new ArrayList<>();
         String[] tmp = AIAnswertxt.split("\n");
-        for(int i = 0; i< tmp.length;i++){
-            if(!tmp[i].isEmpty()){
-                zeilen.add(tmp[i]);
+        for (String s : tmp) {
+            if (!s.isEmpty()) {
+                zeilen.add(s);
             }
         }
         //System.out.println(zeilen);
-        String start = zeilen.getFirst();
 
 
-        double[][] arr= new double[anzFragen][];
-
-        for(int i = 0; i < zeilen.size(); i++){
+        double[][] arrRawAns = new double[zeilen.size()][];
+        int counter = 0;
+        for (int i = 0; i < zeilen.size(); i++) {
             String text = removeLettering(zeilen.get(i));
-            arr[i] = t.runSentenceThrough(text);
+            arrRawAns[i] = t.runSentenceThrough(text);
         }
 
-        //for loop to the first question
-        for(int i = 0; i < arr.length; i++){
 
-        }
-
-        for(int i = 0; i < anzFragen; i++){
+        for (int i = 0; i < anzFragen; i++) {
             Fragen_Antworten add = new Fragen_Antworten();
+
+            counter = findQuestion(arrRawAns, counter);
+            if (counter == -1) {
+                System.out.println("Couldn't find the question");
+                return null;
+            }
+            String question = zeilen.get(counter);
+            counter++;
+
+
+            String[] content = new String[AntwortenProFrage];
+            int j = 0;
+            while (content[AntwortenProFrage-1] == null) {
+                counter = findContent(arrRawAns, counter);
+                if (counter == -1) {
+                    System.out.println("Couldn't find the content");
+                    return null;
+                }
+                content[j] = zeilen.get(counter);
+                counter++;
+                j++;
+            }
+
+
+            String answer;
+            counter = findContent(arrRawAns, counter);
+            if (counter == -1) {
+                System.out.println("Couldn't find the right answer");
+            }
+            answer = zeilen.get(counter);
+            String rightAns = findMostSimilar(answer, List.of(content));
+
+            boolean[] boolArr = {false, false, false};
+            for (int p = 0; p < AntwortenProFrage; p++) {
+                if (rightAns.equals(content[p])) {
+                    boolArr[p] = true;
+                    break;
+                }
+            }
+
+            add.setFrage(question);
+            add.setContent(content);
+            add.setLoesung(boolArr);
             ret[i] = add;
         }
         return ret;
     }
 
-    // 1) Entfernt: 1. 2. 3. ... 20.
-    public static String removeNumbering(String s) {
-        return s.replaceAll("^\\s*(\\d{1,2}\\.)\\s*", "");
+    private int findContent(double[][] arrRawAns, int index) {
+        for (int i = index; i < arrRawAns.length; i++) {
+            if (auswertung(arrRawAns[i], 0.5).equals("Antwort")) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private int findQuestion(double[][] arrRawAns, int index) {
+        for (int i = index; i < arrRawAns.length; i++) {
+            if (auswertung(arrRawAns[i], 0.5).equals("Frage")) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     // 2) Entfernt: a) b) c) A) B) C)
@@ -88,20 +140,16 @@ public class FindAnswersAndQuestions {
         return s.replaceAll("^\\s*([a-zA-Z]\\))\\s*", "");
     }
 
-    // 3) Entfernt: "Antwort:" und a) b) c) A) B) C) (a) (b) (c)
-    public static String removeAnswerPrefix(String s) {
-        return s.replaceAll("^\\s*(Antwort:\\s*)?([a-zA-Z]\\)|\\([a-zA-Z]\\))\\s*", "");
-    }
 
-    public String auswertung(double[] arr, double genauigkeit){
-        if(arr.length != 2){
+    public String auswertung(double[] arr, double genauigkeit) {
+        if (arr.length != 2) {
             System.out.println("Auswertung hat ein ungültiges arr bekommen: " + Arrays.toString(arr));
             return null;
         }
-        double diff = Math.max(arr[0],arr[1]) - Math.min(arr[0],arr[1]);
-        if(diff > genauigkeit){
+        double diff = Math.max(arr[0], arr[1]) - Math.min(arr[0], arr[1]);
+        if (diff > genauigkeit) {
             return arr[0] < arr[1] ? "Antwort" : "Frage";
-        }else{
+        } else {
             return "Ungenau";
         }
     }
@@ -111,6 +159,7 @@ public class FindAnswersAndQuestions {
      * Schaut welche Antwort am ähnlichsten ist.
      * Levenshtein'sche methode:
      * wie viele Zeichen muss ich ändern/einfügen/löschen um von String A zu String B zu kommen
+     *
      * @param target
      * @param candidates
      * @return

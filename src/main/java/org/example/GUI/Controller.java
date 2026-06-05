@@ -4,7 +4,10 @@ package org.example.GUI;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.scene.control.Alert;
+import javafx.scene.image.Image;
 import javafx.scene.input.*;
+import javafx.scene.paint.Color;
 import org.example.manage.Connection;
 import org.example.manage.Fragen_Antworten;
 import org.example.GUI.*;
@@ -54,20 +57,34 @@ public class Controller implements EventHandler<Event> {
         if(source == o.submit){
             String anz = o.anzTF.getText();
             String quell = o.inputTextTA.getText();
+            String anzMöglichkeiten = o.anzAntwortMöglichkeitenProFrage.getText();
+
             if(anz == null || quell == null){
                 return;
             }
-            if(anz.isEmpty()){
-                o.anzTF.setText("BITTE AUSFÜLLEN");
-            }
-            if(quell.isEmpty()){
-                o.inputTextTA.setText("BITTE AUSFÜLLEN");
-            }
 
-            boolean b = c.saveConnection(quell,Integer.parseInt(anz),3,o.speicherOrtTF.getText());
+            boolean check = checkInputs(anz,quell,anzMöglichkeiten);
+            if(check){
+                return;
+            }
+            boolean b = c.saveConnection(quell,
+                                        Integer.parseInt(anz),
+                                        Integer.parseInt(anzMöglichkeiten),
+                                        o.speicherOrtTF.getText());
 
             if(!b){
-                MyAlertFX alertFX = new  MyAlertFX();
+                new  MyAlertFX(o,
+                        Alert.AlertType.ERROR,
+                        "Fehler beim Speichern",
+                        "Speichern Fehlgeschlagen",
+                        "Versuche es später erneut",
+                        true,
+                        new Image("/images/alerterror.png"),
+                        "OK",
+                        "Cancel",
+                        Color.LIGHTBLUE,
+                        Color.WHITE,
+                        Color.BLACK);
             }
         }
 
@@ -94,5 +111,27 @@ public class Controller implements EventHandler<Event> {
             o.updateFileList(fileNames);
             o.root.setCenter(o.fragenAbfragenVB);
         }
+    }
+
+    private boolean checkInputs(String anz, String quell, String anzMöglichkeiten){
+
+        boolean check = false;
+        if(anz.isEmpty()){
+            return true;
+        }
+        if(quell.isEmpty()){
+            o.inputTextTA.setText("BITTE AUSFÜLLEN");
+            return true;
+        }
+        if(anzMöglichkeiten.isEmpty()){
+            return true;
+        }
+        if(Integer.parseInt(anz) < 1 || Integer.parseInt(anz) > 15){
+            return true;
+        }
+        if(Integer.parseInt(anzMöglichkeiten) < 2 || Integer.parseInt(anzMöglichkeiten) > 4){
+            return true;
+        }
+        return false;
     }
 }
