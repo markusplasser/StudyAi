@@ -9,7 +9,6 @@ import javafx.scene.image.Image;
 import javafx.scene.input.*;
 import javafx.scene.paint.Color;
 import org.example.manage.Connection;
-import org.example.manage.Fragen_Antworten;
 import java.util.Properties;
 
 public class Controller implements EventHandler<Event> {
@@ -54,22 +53,26 @@ public class Controller implements EventHandler<Event> {
         Object source = event.getSource();
 
         if(source == o.submit){
-            String anz = o.anzTF.getText();
+            String anzFragen = o.anzTF.getText();
+            String anzAntworten = o.anzAntwTF.getText();
             String quell = o.inputTextTA.getText();
-            String anzMöglichkeiten = o.anzAntwortMöglichkeitenProFrage.getText();
-
-            if(anz == null || quell == null){
+            if(anzFragen == null || quell == null){
                 return;
             }
-
-            boolean check = checkInputs(anz,quell,anzMöglichkeiten);
-            if(check){
+            if(anzFragen.isEmpty()){
+                o.anzTF.setText("BITTE AUSFÜLLEN");
+            }
+            if(anzAntworten == null){
                 return;
             }
-            boolean b = c.saveConnection(quell,
-                                        Integer.parseInt(anz),
-                                        Integer.parseInt(anzMöglichkeiten),
-                                        o.speicherOrtTF.getText());
+            if(anzAntworten.isEmpty()){
+                o.anzTF.setText("BITTE AUSFÜLLEN");
+            }
+            if(quell.isEmpty()){
+                o.inputTextTA.setText("BITTE AUSFÜLLEN");
+            }
+
+            boolean b = c.saveConnection(quell,Integer.parseInt(anzFragen),Integer.parseInt(anzAntworten),o.speicherOrtTF.getText());
 
             if(!b){
                 new  MyAlertFX(o,
@@ -99,8 +102,15 @@ public class Controller implements EventHandler<Event> {
                 o.root.setCenter(o.fragenVB);
 
                 o.fragenArr = c.returnQuestions(o.fragenDateiTF.getText());
+
+                int anzAntw = o.fragenArr[0].getContent().length;
+                o.buildFragenView(anzAntw);
+
                 o.fragenNum = 0;
+                o.anzRichtig = 0;
+                o.anzFragen = o.fragenArr.length;
                 o.zeigeFrageAnIndex(0);
+                o.root.setCenter(o.fragenVB);
             }
         }
         if(source == o.itemerstellen){
@@ -114,37 +124,45 @@ public class Controller implements EventHandler<Event> {
 
         if(source == o.nextQuestion) {
             o.fragenNum++;
-            o.zeigeFrageAnIndex(o.fragenNum);
+            for(int i = 0; i < o.awnserButtons.length; i++){
+                o.awnserButtons[i].setMouseTransparent(false);
+            }
+            if(o.fragenNum < o.fragenArr.length) {
+                o.zeigeFrageAnIndex(o.fragenNum);
+
+                o.antwort1.setStyle(o.BTN_OUTLINE);
+                o.antwort2.setStyle(o.BTN_OUTLINE);
+                o.antwort3.setStyle(o.BTN_OUTLINE);
+
+            } else {
+                o.buildErgebniss();
+                o.root.setCenter(o.ergebnissVB);
+            }
         }
 
-        if(source == o.antwort1){
-            o.checkAwnser(o.antwort1, 0, o.fragenNum);
+        if(o.awnserButtons != null) {
+            for (int i = 0; i < o.awnserButtons.length; i++) {
+                if (source == o.awnserButtons[i]) {
+                    if (o.checkAwnser(o.awnserButtons[i], i, o.fragenNum)) {
+                        o.anzRichtig++;
+                    }
+                    o.showRightAwnser(o.fragenNum);
+                    o.disableAwnserButtons();
+                }
+            }
         }
-        if(source == o.antwort2){
-            o.checkAwnser(o.antwort2, 1, o.fragenNum);
-        }
-        if(source == o.antwort3){
-            o.checkAwnser(o.antwort3, 2, o.fragenNum);
-        }
-    }
 
-    private boolean checkInputs(String anz, String quell, String anzMöglichkeiten){
-        if(anz.isEmpty()){
-            return true;
+        if(source == o.home){
+            o.root.setCenter(o.fragenAbfragenVB);
         }
-        if(quell.isEmpty()){
-            o.inputTextTA.setText("BITTE AUSFÜLLEN");
-            return true;
+        if(source == o.again){
+
+            o.fragenArr = c.returnQuestions(o.fragenDateiTF.getText());
+            o.fragenNum = 0;
+            o.anzRichtig = 0;
+            o.anzFragen = o.fragenArr.length;
+            o.zeigeFrageAnIndex(0);
+            o.root.setCenter(o.fragenVB);
         }
-        if(anzMöglichkeiten.isEmpty()){
-            return true;
-        }
-        if(Integer.parseInt(anz) < 1 || Integer.parseInt(anz) > 15){
-            return true;
-        }
-        if(Integer.parseInt(anzMöglichkeiten) < 2 || Integer.parseInt(anzMöglichkeiten) > 4){
-            return true;
-        }
-        return false;
     }
 }

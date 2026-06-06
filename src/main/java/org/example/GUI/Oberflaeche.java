@@ -8,7 +8,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import org.example.manage.Connection;
 import org.example.manage.Fragen_Antworten;
 
 import java.util.Properties;
@@ -16,22 +15,25 @@ import java.util.Properties;
 public class Oberflaeche extends Stage {
 
     final private Controller controller;
-    final private Connection c;
 
     final MenuItem menuCloseMI, itemerstellen, itemabfragen;
 
 
-    public Button submit, fragenStarten, nextQuestion, antwort1, antwort2, antwort3;
-    public TextField anzTF, anzAntwortMöglichkeitenProFrage, fragenDateiTF, speicherOrtTF;
-    public Label frage;
+    public Button submit, fragenStarten, nextQuestion, antwort1, antwort2, antwort3, home, again;
+    public TextField anzTF, anzAntwTF, fragenDateiTF, speicherOrtTF;
+    public Label frage, quizFertig, richtig;
     public TextArea inputTextTA;
     public BorderPane root;
-    public VBox fragenErstellenVB, fragenAbfragenVB, fragenVB;
+    public VBox fragenErstellenVB, fragenAbfragenVB, fragenVB, ergebnissVB;
     public ListView<String> fileLV;
+
+    public Button[] awnserButtons;
 
     public int width  = 1020;
     public int height = 640;
     public int fragenNum = 0;
+    public int anzRichtig = 0;
+    public int anzFragen = 0;
 
     public Fragen_Antworten[] fragenArr;
 
@@ -74,7 +76,7 @@ public class Oberflaeche extends Stage {
                     "-fx-cursor: hand;" +
                     "-fx-padding: 11 24;";
 
-    private static final String BTN_OUTLINE =
+    public static final String BTN_OUTLINE =
             "-fx-background-color: " + ACCENT_DIM + ";" +
                     "-fx-text-fill: " + ACCENT_GLOW + ";" +
                     "-fx-font-size: 14px;" +
@@ -84,7 +86,7 @@ public class Oberflaeche extends Stage {
                     "-fx-cursor: hand;" +
                     "-fx-padding: 11 24;";
 
-    private static final String BTN_OUTLINE_HOVER =
+    public static final String BTN_OUTLINE_HOVER =
             "-fx-background-color: " + ACCENT + ";" +
                     "-fx-text-fill: white;" +
                     "-fx-font-size: 14px;" +
@@ -117,14 +119,12 @@ public class Oberflaeche extends Stage {
 
     public Oberflaeche(Properties p) {
         controller = new Controller(this, p);
-        c = new Connection(p);
 
         root = new BorderPane();
         root.setStyle("-fx-background-color: " + BG_DEEP + ";");
 
         buildFragenErstellen();
         buildFragenAbfragen();
-        buildFragenView();
 
         itemerstellen = new MenuItem("Fragen erstellen");
         itemabfragen  = new MenuItem("Fragen abfragen");
@@ -192,26 +192,32 @@ public class Oberflaeche extends Stage {
     }
 
     private void buildFragenErstellen() {
+        anzTF         = styledTextField("1 – 15");
+        inputTextTA   = styledTextArea("Kopiere hier deinen Text hinein...");
         anzTF        = styledTextField("1 – 15");
-        anzAntwortMöglichkeitenProFrage = styledTextField("2-4");
         inputTextTA  = styledTextArea("Kopiere hier deinen Text hinein...");
         speicherOrtTF = styledTextField("Name für die Datei...");
-        submit       = accentButton("Fragen erstellen");
+        anzAntwTF     = styledTextField("3-5");
+        submit        = accentButton("Fragen erstellen");
 
         anzTF.setPrefHeight(42);
-        anzAntwortMöglichkeitenProFrage.setPrefHeight(42);
         speicherOrtTF.setPrefHeight(42);
+        anzAntwTF.setPrefHeight(42);
         submit.setOnAction(controller::handle);
 
+        // Nur Zahlen erlauben
         anzTF.setTextFormatter(new TextFormatter<>(change -> {
             if (change.getText().matches("[0-9]*")) return change;
             return null;
         }));
-
-        anzAntwortMöglichkeitenProFrage.setTextFormatter(new TextFormatter<>(change -> {
-            if (change.getText().matches("[2-4]*")) return change;
+        anzAntwTF.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.isEmpty() || (newText.matches("[0-9]*") && Integer.parseInt(newText) >= 3 && Integer.parseInt(newText) <= 5)) {
+                return change;
+            }
             return null;
         }));
+
 
 
         fragenErstellenVB = new VBox(14);
@@ -220,7 +226,7 @@ public class Oberflaeche extends Stage {
         fragenErstellenVB.getChildren().addAll(
                 titleLabel("Fragen erstellen"), darkSep(),
                 sectionLabel("ANZAHL DER FRAGEN"), anzTF,
-                sectionLabel("Anzahl der Antwortmöglichkeiten Pro Frage"), anzAntwortMöglichkeitenProFrage,
+                sectionLabel("ANZAHL DER ANTWORTMÖGLICHKEITEN"), anzAntwTF,
                 sectionLabel("EINGABE TEXT"), inputTextTA,
                 sectionLabel("DATEINAME"), speicherOrtTF,
                 submit
@@ -269,7 +275,7 @@ public class Oberflaeche extends Stage {
         fragenAbfragenVB.getChildren().add(gp);
     }
 
-    private void buildFragenView() {
+    public void buildFragenView(int anzAntworten) {
         frage = new Label("Frage");
         frage.setWrapText(true);
         frage.setMaxWidth(Double.MAX_VALUE);
@@ -284,12 +290,11 @@ public class Oberflaeche extends Stage {
                         "-fx-padding: 18 22;"
         );
 
-        antwort1   = outlineButton("Antwort 1");
-        antwort2   = outlineButton("Antwort 2");
-        antwort3   = outlineButton("Antwort 3");
-        antwort1.setOnAction(controller::handle);
-        antwort2.setOnAction(controller::handle);
-        antwort3.setOnAction(controller::handle);
+        awnserButtons = new Button[anzAntworten];
+        for(int i = 0; i < anzAntworten; i++) {
+            awnserButtons[i] = outlineButton("Antwort " + (i + 1));
+            awnserButtons[i].setOnAction(controller::handle);
+        }
 
         nextQuestion = accentButton("Weiter →");
         nextQuestion.setOnAction(controller::handle);
@@ -298,7 +303,112 @@ public class Oberflaeche extends Stage {
         fragenVB.setPadding(new Insets(38, 44, 38, 44));
         fragenVB.setStyle("-fx-background-color: " + BG_DEEP + ";");
         fragenVB.setAlignment(Pos.TOP_LEFT);
-        fragenVB.getChildren().addAll(frage, antwort1, antwort2, antwort3, nextQuestion);
+        fragenVB.getChildren().add(frage);
+        for(Button b : awnserButtons) fragenVB.getChildren().add(b);
+        fragenVB.getChildren().add(nextQuestion);
+    }
+
+    public void buildErgebniss() {
+        ergebnissVB = new VBox(20);
+        ergebnissVB.setPadding(new Insets(38, 44, 38, 44));
+        ergebnissVB.setStyle("-fx-background-color: " + BG_DEEP + ";");
+        ergebnissVB.setAlignment(Pos.CENTER);
+
+        Label trophy = new Label("🏆");
+        trophy.setStyle(
+                "-fx-font-size: 52px;" +
+                        "-fx-text-fill: gold;" +
+                        "-fx-font-weight: bold;"
+        );
+
+        quizFertig = new Label("Quiz abgeschlossen!");
+        quizFertig.setStyle(
+                "-fx-text-fill: " + TEXT_HI + ";" +
+                        "-fx-font-size: 26px;" +
+                        "-fx-font-weight: bold;");
+
+        darkSep();
+
+        VBox card = new VBox(14);
+        card.setPadding(new Insets(24, 32, 24, 32));
+        card.setAlignment(Pos.CENTER);
+        card.setStyle(
+                "-fx-background-color: " + BG_CARD + ";" +
+                        "-fx-border-color: " + BORDER_COL + ";" +
+                        "-fx-border-radius: 12;" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-border-width: 1;");
+
+        Label punkte = new Label(anzRichtig + " / " + anzFragen);
+        punkte.setStyle(
+                "-fx-text-fill: " + ACCENT_GLOW + ";" +
+                        "-fx-font-size: 52px;" +
+                        "-fx-font-weight: bold;");
+
+
+        float prozentF = ((float) anzRichtig/anzFragen) * 100;
+        int prozentInt = (int) prozentF;
+        String badgeColor;
+        String badgeBg;
+        String badgeBorder;
+        String badgeText;
+
+        if (prozentInt >= 70) {
+            badgeColor = "#6bff8f";
+            badgeBg = "#0f3d1f";
+            badgeBorder = "#2e8b57";
+            badgeText = "Ausgezeichnet!";
+        }
+        else if (prozentInt >= 40) {
+            badgeColor = "#FFD166";
+            badgeBg = "#3d3000";
+            badgeBorder = "#b38600";
+            badgeText = "Gut gemacht!";
+        }
+        else {
+            badgeColor = "#ff6b6b";
+            badgeBg = "#3d1515";
+            badgeBorder = "#e03131";
+            badgeText = "Weiter üben!";
+        }
+
+        Label badge = new Label(prozentInt + "%  " + badgeText);
+        badge.setStyle(
+                "-fx-background-color: " + badgeBg + ";" +
+                        "-fx-text-fill: " + badgeColor + ";" +
+                        "-fx-font-size: 13px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 20;" +
+                        "-fx-border-color: " + badgeBorder + ";" +
+                        "-fx-border-radius: 20;" +
+                        "-fx-border-width: 1;" +
+                        "-fx-padding: 5 16;");
+
+        richtig = new Label(anzRichtig + " von " + anzFragen + " Fragen richtig beantwortet");
+        richtig.setStyle(
+                "-fx-text-fill: " + TEXT_MID + ";" +
+                        "-fx-font-size: 14px;");
+
+        card.getChildren().addAll(punkte, badge, richtig);
+
+        home = new Button("Zurück zur Übersicht");
+        home.setPrefHeight(46);
+        home.setStyle(BTN_OUTLINE);
+        home.setOnMouseEntered(e -> home.setStyle(BTN_OUTLINE_HOVER));
+        home.setOnMouseExited(e  -> home.setStyle(BTN_OUTLINE));
+        home.setOnAction(controller::handle);
+
+        again = new Button("Quiz wiederholen");
+        again.setPrefHeight(46);
+        again.setStyle(BTN_OUTLINE);
+        again.setOnMouseEntered(e -> again.setStyle(BTN_OUTLINE_HOVER));
+        again.setOnMouseExited(e  -> again.setStyle(BTN_OUTLINE));
+        again.setOnAction(controller::handle);
+
+        HBox btnRow = new HBox(14, home, again);
+        btnRow.setAlignment(Pos.CENTER);
+
+        ergebnissVB.getChildren().addAll(trophy, quizFertig, darkSep(), card, btnRow);
     }
 
     private TextField styledTextField(String prompt) {
@@ -356,23 +466,54 @@ public class Oberflaeche extends Stage {
         frage.setText(fragenArr[index].getFrage());
         String[] antworten = fragenArr[index].getContent();
 
-        antwort1.setText(antworten[0]);
-        antwort2.setText(antworten[1]);
-        antwort3.setText(antworten[2]);
+        for(int i = 0; i < awnserButtons.length; i++) {
+            awnserButtons[i].setText(antworten[i]);
+            awnserButtons[i].setStyle(BTN_OUTLINE);
+            awnserButtons[i].setMouseTransparent(false);
+            awnserButtons[i].setOpacity(1.0);
+            awnserButtons[i].setOnMouseEntered(e -> ((Button)e.getSource()).setStyle(BTN_OUTLINE_HOVER));
+            awnserButtons[i].setOnMouseExited(e  -> ((Button)e.getSource()).setStyle(BTN_OUTLINE));
+        }
     }
 
-    public void checkAwnser(Button btn, int buttonIndex, int fragenIndex){
-        boolean [] antwort = fragenArr[fragenIndex].getLoesung();
+    public boolean checkAwnser(Button btn, int buttonIndex, int fragenNummer){
+        boolean [] antwort = fragenArr[fragenNummer].getLoesung();
         int loesung = -1;
 
         for(int i = 0; i < antwort.length; i++){
-            if(antwort[i] == true){
+            if(antwort[i]){
                 loesung = i;
             }
         }
 
         if(buttonIndex == loesung){
+            btn.setStyle(BTN_GREEN);
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
 
+    public void showRightAwnser(int fragenNummer) {
+        boolean[] antwort = fragenArr[fragenNummer].getLoesung();
+
+        for (int i = 0; i < antwort.length; i++) {
+            if (antwort[i]) {
+                awnserButtons[i].setStyle(BTN_GREEN);
+            }
+            else{
+                awnserButtons[i].setStyle(BTN_RED);
+            }
+        }
+    }
+
+    public void disableAwnserButtons() {
+        for(Button b : awnserButtons) {
+            b.setOnMouseEntered(null);
+            b.setOnMouseExited(null);
+            b.setMouseTransparent(true);
+            b.setOpacity(1.0);
         }
     }
 }
