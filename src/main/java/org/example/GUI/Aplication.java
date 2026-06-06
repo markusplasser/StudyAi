@@ -19,7 +19,7 @@ public class Aplication extends Application {
     }
     @Override
     public void start(Stage stage) {
-        if(!appConfig.firstStart()) {
+        if(appConfig.firstStart()) {
             showApiKeyDialog();
         }
         new Oberflaeche(appConfig.getProperties());

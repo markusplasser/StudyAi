@@ -56,15 +56,18 @@ public class TrainWithTrainSet {
         );
     }
 
-
-    public void doWithGPU(String text){
+    /**
+     *
+     * @param text
+     */
+    public double[] doWithGPU(String text){
         Tokenizer tk = new Tokenizer();
         try {
             int targetlength = getTargetlength(text);
             tk.loadTokenizer("res/tokenizer.json");
             activeNetwork.initCUDA();
             double[] input = tk.tokenizeBatch(new String[]{text}, targetlength)[0];
-            activeNetwork.checkSentenceGPU(input);
+            return activeNetwork.checkSentenceGPU(input);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
