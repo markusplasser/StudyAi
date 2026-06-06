@@ -194,6 +194,8 @@ public class Oberflaeche extends Stage {
     private void buildFragenErstellen() {
         anzTF         = styledTextField("1 – 15");
         inputTextTA   = styledTextArea("Kopiere hier deinen Text hinein...");
+        anzTF        = styledTextField("1 – 15");
+        inputTextTA  = styledTextArea("Kopiere hier deinen Text hinein...");
         speicherOrtTF = styledTextField("Name für die Datei...");
         anzAntwTF     = styledTextField("3-5");
         submit        = accentButton("Fragen erstellen");
@@ -215,6 +217,8 @@ public class Oberflaeche extends Stage {
             }
             return null;
         }));
+
+
 
         fragenErstellenVB = new VBox(14);
         fragenErstellenVB.setPadding(new Insets(38, 44, 38, 44));

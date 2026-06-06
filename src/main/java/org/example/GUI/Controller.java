@@ -4,7 +4,10 @@ package org.example.GUI;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.scene.control.Alert;
+import javafx.scene.image.Image;
 import javafx.scene.input.*;
+import javafx.scene.paint.Color;
 import org.example.manage.Connection;
 import java.util.Properties;
 
@@ -72,7 +75,18 @@ public class Controller implements EventHandler<Event> {
             boolean b = c.saveConnection(quell,Integer.parseInt(anzFragen),Integer.parseInt(anzAntworten),o.speicherOrtTF.getText());
 
             if(!b){
-                //MyAlertFX alertFX = new  MyAlertFX();
+                new  MyAlertFX(o,
+                        Alert.AlertType.ERROR,
+                        "Fehler beim Speichern",
+                        "Speichern Fehlgeschlagen",
+                        "Versuche es später erneut",
+                        true,
+                        new Image("/images/alerterror.png"),
+                        "OK",
+                        "Cancel",
+                        Color.LIGHTBLUE,
+                        Color.WHITE,
+                        Color.BLACK);
             }
         }
 

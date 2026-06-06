@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Properties;
 
 public class Connection {
@@ -18,8 +19,8 @@ public class Connection {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        var handleSave = new Handle_Save(p.getProperty("Project_Save_File   "));
-        Fragen_Antworten[] fr = handleSave.read("Alex");
+        var handleSave = new Handle_Save(p.getProperty("Project_Save_File"));
+        Fragen_Antworten[] fr = handleSave.read("Alex.bin");
         for(int i = 0; i< fr.length; i++){
             System.out.println(fr[i].toString());
         }
@@ -40,30 +41,41 @@ public class Connection {
         geminiService = new GeminiService(p.getProperty("API_KEY"));
     }
 
+    /**
+     * Return true if and only if the generating and saving of Questions was successful
+     * @param inputtxt Input text
+     * @param anzFragen ammout of question to generate
+     * @param anzProFrage ammount of different answers
+     * @param fileName name of save file
+     * @return return true if the generation and saving was successful
+     */
     public boolean saveConnection(String inputtxt, int anzFragen, int anzProFrage , String fileName){
-        if(true){
-            return false;
-        }
         String aiAnswer = null;
-
+        int model = -1;
         for(int models = 0; models < 3; models++){
             aiAnswer = geminiService.ask(geminiService.buildPromt(inputtxt,anzFragen,anzProFrage), models);
             if(aiAnswer != null){
+                model = models;
                 break;
             }
         }
+        aiAnswer = geminiService.getString(model,aiAnswer);
+
         if(aiAnswer == null){
             return false;
         }
 
-        Fragen_Antworten[] save = new  Fragen_Antworten[anzFragen];
+        Fragen_Antworten[] save;
+        save = FAAQ.findWithoutAI(aiAnswer,anzFragen,anzProFrage);
         try{
             save = FAAQ.findWithAI(aiAnswer,anzFragen,anzProFrage);
         } catch(NullPointerException e){
-            save = FAAQ.findWithoutAI(aiAnswer,anzFragen,anzProFrage);
+
         }
 
-
+        for(Fragen_Antworten f : save){
+            System.out.println(f.toString());
+        }
         //Saves the Questions in a File
         hs.setArr(save);
         hs.setFilename(fileName);
@@ -72,6 +84,11 @@ public class Connection {
         return true;
     }
 
+    /**
+     * Returns the questions of the save file
+     * @param filename name of the save file
+     * @return Fragen_Antworten[] with the content
+     */
     public Fragen_Antworten[] returnQuestions(String filename){
         Fragen_Antworten[] ret = hs.read(filename);
         if(ret == null){
@@ -82,6 +99,10 @@ public class Connection {
         return ret;
     }
 
+    /**
+     * Returns the list of Filenames in the save folder from the prop.file
+     * @return String
+     */
     public String returnFileNames() {
         String path = p.getProperty("Project_Save_File");
         File folder = new File(path);

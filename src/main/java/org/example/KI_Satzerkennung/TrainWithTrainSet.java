@@ -23,7 +23,7 @@ public class TrainWithTrainSet {
     SentenceDetectorME detector = null;
     private Network activeNetwork = null;
     private final Network[] networks = new Network[names.length];
-    private static final String[] names = {"save136.txt","save176.txt","save232.txt","save328.txt"};
+    private static final String[] names = {"res/save136.txt","res/save176.txt","res/save232.txt","res/save328.txt"};
 
     public static void main(String[] args){
 
