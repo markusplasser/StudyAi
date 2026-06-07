@@ -9,34 +9,63 @@ import java.util.List;
 
 public class FindAnswersAndQuestions {
 
-    public Fragen_Antworten[] findWithoutAI(String AIAnswertext, int anzFragen, int AntwortenProFragen) {
+    /**
+     * finds all components via trust that the AI responded the right way
+     * @param AIAnswertext
+     * @param anzFragen
+     * @param antwortenProFragen
+     * @return
+     */
+    public Fragen_Antworten[] findWithoutAI(String AIAnswertext, int anzFragen, int antwortenProFragen) {
         Fragen_Antworten[] answer = new Fragen_Antworten[anzFragen];
 
         Fragen_Antworten[] ret = new Fragen_Antworten[anzFragen];
         ArrayList<String> zeilen = new ArrayList<>();
         String[] tmp = AIAnswertext.split("\n");
-        for (int i = 0; i < tmp.length; i++) {
-            if (!tmp[i].isEmpty()) {
-                zeilen.add(tmp[i]);
+        for (String s : tmp) {
+            if (!s.isEmpty()) {
+                zeilen.add(s);
             }
         }
         int counter = 0;
-        boolean[] found = {true, false, false};
-        for (int i = 0; i < anzFragen; i++) {
+
+        for(int i = 0; i < anzFragen; i++){
             Fragen_Antworten f = new Fragen_Antworten();
-            f.setFrage(zeilen.get(counter));
+
+            String question = zeilen.get(counter);
             counter++;
-            String[] content = new String[AntwortenProFragen];
-            for (int j = 0; j < AntwortenProFragen; j++) {
-                content[j] = zeilen.get(counter);
-                counter++;
+
+            String[] content = getContent(zeilen, antwortenProFragen, counter);
+            counter = counter + antwortenProFragen;
+
+            String right = zeilen.get(counter);
+            counter++;
+            boolean[] boolArr = new boolean[antwortenProFragen];
+            String trueAns = findMostSimilar(right, List.of(content));
+            for(int j= 0 ; j < content.length; j++){
+                if(content[j].equals(trueAns)){
+                    boolArr[j] = true;
+                    break;
+                }
             }
-            f.setLoesung(found);
+
             f.setContent(content);
-            counter++;
+            f.setFrage(question);
+            f.setLoesung(boolArr);
+
             answer[i] = f;
         }
         return answer;
+    }
+
+
+
+    private String[] getContent(ArrayList<String> zeilen, int antwortenProFrage, int counter){
+        String[] ret = new String[antwortenProFrage];
+        for(int i = 0; i < antwortenProFrage; i++){
+            ret[i] = zeilen.get(counter+i);
+        }
+        return ret;
     }
 
     public Fragen_Antworten[] findWithAI(String AIAnswertxt, int anzFragen, int AntwortenProFrage) {
@@ -55,7 +84,7 @@ public class FindAnswersAndQuestions {
                 zeilen.add(s);
             }
         }
-        //System.out.println(zeilen);
+
 
 
         double[][] arrRawAns = new double[zeilen.size()][];

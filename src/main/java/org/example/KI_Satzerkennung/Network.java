@@ -45,6 +45,12 @@ public class Network {
     private CUdeviceptr d_bias;
     private CUdeviceptr d_layerSizes;
 
+    /**
+     * Constructor
+     * @param VOCAB_SIZE vocab_size
+     * @param embeddingDim embeddingDim
+     * @param NETWORK_LAYER_SIZE networt_layer_size
+     */
     public Network(int VOCAB_SIZE, int embeddingDim, int... NETWORK_LAYER_SIZE) {
         EMBEDDING_DIM = embeddingDim;
         this.VOCAB_SIZE = VOCAB_SIZE;
@@ -82,10 +88,9 @@ public class Network {
 
 
     /**
-     * Feedforward process...
-     * SUM = bias + (weight[layer][neuron][prevNeuron] * output[layer][prevNeuron] + weight[layer][neuron][prevNeuron+1])
-     * @param input
-     * @return double[]
+     * Feedforward algorithm
+     * @param input double[] input
+     * @return calculated double[]
      */
     public double[] calculate(double... input){
         if(input.length != INPUT_LAYER_SIZE){
@@ -105,14 +110,19 @@ public class Network {
         return output[NETWORK_SIZE-1];
     }
 
+    /**
+     * Embeds the Tokens in 8d vectors
+     * @param rawIDs Tokens
+     * @return embedded IDs
+     */
     public double[] embedInput(double[] rawIDs){
         double[] ret = new double[rawIDs.length*EMBEDDING_DIM];
         int count = 0;
-        for(int i = 0; i < rawIDs.length; i++){
-            int id = (int) rawIDs[i];
+        for (double rawID : rawIDs) {
+            int id = (int) rawID;
             double[] add = embedding[id];
-            for(int j = 0; j<add.length;j++){
-                ret[count] = add[j];
+            for (double v : add) {
+                ret[count] = v;
                 count++;
             }
         }
@@ -121,31 +131,29 @@ public class Network {
 
 
      /**
-     * Calc. the Cost func
-     * Dieses Video erklärt alle schritte Mathematisch.
-     * https://www.youtube.com/watch?v=tIeHLnjs5U8
-     * @param traget
-     * @return err_signal
-     */
+      * Calculates the cost func.
+      * <a href="https://www.youtube.com/watch?v=tIeHLnjs5U8">Video for explanation</a>
+      * @param traget target value
+      * @param rawIDs predicted output
+      */
     public void backpropagation(double[] traget, double[] rawIDs){
-        /**
-         * err_signal = (outputVal - target) * output_derivetive[][]
-         *
-         * err_signal : wie viel Schuld hast du an dem Falschen output
-         * output_derivetive -> wie stark ändert sich das Ergebnis bei kleinen Änderungen
-         * je kleiner desto weniger hat es einfluss auf die änderung
-         */
+
+//         err_signal = (outputVal - target) * output_derivetive[][]
+//         err_signal : wie viel Schuld hast du an dem Falschen output
+//         output_derivetive -> wie stark ändert sich das Ergebnis bei kleinen Änderungen
+//         je kleiner desto weniger hat es einfluss auf die änderung
+
         for(int neuron = 0; neuron < OUTPUT_LAYER_SIZE; neuron++)
         {
             err_signal[NETWORK_SIZE-1][neuron] = (output[NETWORK_SIZE-1][neuron] - traget[neuron])
                     * output_derivative[NETWORK_SIZE-1][neuron];
         }
 
-        /**
-         *  layer = NETWORK_SIZE-2 -> weil es mit dem Inedexing auf die weights sonst Probleme gibt
-         *  weights[layer][neuron][prev neuron]
-         *
-         */
+
+//         layer = NETWORK_SIZE-2 -> weil es mit dem Inedexing auf die weights sonst Probleme gibt
+//         weights[layer][neuron][prev neuron]
+
+
         for(int layer = NETWORK_SIZE-2; layer > 0; layer--){
             for(int neuron = 0; neuron < NETWORK_LAYER_SIZE[layer]; neuron++){
                 double sum = 0;
@@ -178,6 +186,12 @@ public class Network {
         }
     }
 
+    /**
+     * extracts batch and calls train with that Trainset
+     * @param trainSet Trainset
+     * @param batchsize batchsize
+     * @param anz amount
+     */
     public void train(TrainSet trainSet, int batchsize, int anz){
         for(int i = 0; i < anz; i++){
             TrainSet batch = trainSet.extractBatch(batchsize);
@@ -188,6 +202,11 @@ public class Network {
         }
     }
 
+    /**
+     * calls the right functions in the right order to train the network
+     * @param rawIDs rawIDs
+     * @param target target value
+     */
     private void train(double[] rawIDs, double[] target){
         if(rawIDs.length* EMBEDDING_DIM != INPUT_LAYER_SIZE || target.length != OUTPUT_LAYER_SIZE){return;}
         double[] embedded = embedInput(rawIDs);
@@ -196,29 +215,39 @@ public class Network {
         update(eta);
     }
 
+    /**
+     * Checks one sentence on the CPU
+     * @param input double[] input
+     * @return double[] output of network
+     */
     public double[] checkSentence(double[] input){
         return calculate(embedInput(input));
     }
 
+    /**
+     * Checks one sentence on the GPU
+     * @param input double[] input
+     * @return double[] output of network
+     */
     public double[] checkSentenceGPU(double[] input){
         return calcGPU(embedInput(input));
     }
 
+    /**
+     * updates weights and bias with a factor of eta
+     * @param eta double eta - factor
+     */
     public void update(double eta){
         for(int layer = 1; layer < NETWORK_SIZE; layer++){
             for(int neuron = 0; neuron < NETWORK_LAYER_SIZE[layer]; neuron++){
                 for(int prevneuron = 0;  prevneuron < NETWORK_LAYER_SIZE[layer-1]; prevneuron++){
-                    /**
-                     * -eta -> wollen den Fehler minimieren -> zum minimum der funk.
-                     * output[layer-1][prevneuron] -> falls der output 0 war hat der weight keine Schuld am Fehler
-                     * err_signal[layer][neuron] -> der Fehler dieses Neurons -> großer/kleiner Fehler viel/wenig anpassen
-                     */
+//                     -eta -> wollen den Fehler minimieren -> zum minimum der funk.
+//                     output[layer-1][prevneuron] -> falls der output 0 war hat der weight keine Schuld am Fehler
+//                     err_signal[layer][neuron] -> der Fehler dieses Neurons -> großer/kleiner Fehler viel/wenig anpassen
                     double delta = - eta * output[layer-1][prevneuron]* err_signal[layer][neuron];
                     weights[layer][neuron][prevneuron] += delta;
                 }
-                /**
-                 * Das selbe wie bei den weights nur dass der bias addiert wird und desshalb immer schuld am Fehler hat
-                 */
+//                 Das selbe wie bei den weights nur dass der bias addiert wird und desshalb immer schuld am Fehler hat
                 double delta = -eta * err_signal[layer][neuron];
                 bias[layer][neuron] += delta;
             }
@@ -227,8 +256,8 @@ public class Network {
 
     /**
      * Calculates the sigmoid function with a given value
-     * @param val
-     * @return
+     * @param val double value
+     * @return sigmoid value
      */
     private double sigmoid(double val){
         return 1 / (1 + Math.exp(-val));
@@ -236,12 +265,12 @@ public class Network {
 
 
     /**
-     * Creates a new double[size][prevsize] and set values between lower_bound and upper_bound
-     * @param size
-     * @param prevSize
-     * @param lower_bound
-     * @param upper_bound
-     * @return double[][]
+     * Creates a new double[size][prevSize] and set values between lower_bound and upper_bound
+     * @param size int size
+     * @param prevSize int prevSize
+     * @param lower_bound double lower_bound
+     * @param upper_bound double upper_bound
+     * @return random double[][]
      */
     public double[][] createRandomArr(int size,int prevSize,double lower_bound,double upper_bound){
         if(size < 1 || prevSize < 1){
@@ -259,9 +288,9 @@ public class Network {
 
     /**
      * Creates a new double arr with val between the parms
-     * @param size
-     * @param lower_bound
-     * @param upper_bound
+     * @param size int size
+     * @param lower_bound double lower_bound
+     * @param upper_bound double upper_bound
      * @return double[]
      */
     public double[] createRandomArr(int size,double lower_bound,double upper_bound){
@@ -273,7 +302,11 @@ public class Network {
         return arr;
     }
 
-    //save Methoden nicht selber geschrieben
+    /**
+     * saves a network current parameter in .txt file
+     * generated
+     * @param path String path
+     */
     public void saveNetwork(String path)throws Exception{
         Parser p = new Parser();
         p.create(path);
@@ -306,6 +339,12 @@ public class Network {
         }
         p.close();
     }
+
+    /**
+     * loads a network from a save file
+     * @param path String path
+     * @return the loaded network
+     */
     public static Network loadNetwork(String path)throws Exception{
         Parser p = new Parser();
 
@@ -335,6 +374,12 @@ public class Network {
         return ne;
     }
 
+    /**
+     * Calc the feedforward algorithm on the GPU
+     * Still slower than the CPU do to not efficient transfer of data between CPU und GPU
+     * @param input double[] input
+     * @return double[] output of network
+     */
     public double[] calcGPU(double[] input) {
         // Input in output[0] setzen und flach kopieren
         output[0] = input;
@@ -390,7 +435,10 @@ public class Network {
     }
 
 
-
+    /**
+     * initializes the Cuda Kernel
+     * only possible with Nvidia GPU's
+     */
     public void initCUDA() throws Exception {
 
         //Throws Exceptions and doesn't die silent!! -important for debugging
@@ -437,9 +485,10 @@ public class Network {
         cuMemcpyHtoD(d_layerSizes, Pointer.to(NETWORK_LAYER_SIZE),  (long) NETWORK_LAYER_SIZE.length * Sizeof.INT);
     }
 
-
-    //Creates 1 dim arr out of multi-dim arr
-
+    /**
+     * Creates 1 dim arr out of double[][][] for weights
+     * @return double[] flattened
+     */
     private double[] flattenWeights() {
         // weights[layer][neuron][prevNeuron] -> [layer * MAX² + neuron * MAX + prevNeuron]
         double[] flat = new double[NETWORK_SIZE * MAX_LAYER_SIZE * MAX_LAYER_SIZE];
@@ -452,32 +501,42 @@ public class Network {
         }
         return flat;
     }
+
+    /**
+     * Creates 1 dim arr out of double[][] for bias
+     * @return double[] flattened
+     */
     private double[] flattenBias() {
-        double[] flat = new double[NETWORK_SIZE * MAX_LAYER_SIZE];
-        for (int l = 0; l < NETWORK_SIZE; l++) {
-            for (int n = 0; n < NETWORK_LAYER_SIZE[l]; n++) {
-                flat[l * MAX_LAYER_SIZE + n] = bias[l][n];
-            }
-        }
-        return flat;
-    }
-    private double[] flattenOutput() {
-        double[] flat = new double[NETWORK_SIZE * MAX_LAYER_SIZE];
-        for (int l = 0; l < NETWORK_SIZE; l++) {
-            for (int n = 0; n < NETWORK_LAYER_SIZE[l]; n++) {
-                flat[l * MAX_LAYER_SIZE + n] = output[l][n];
-            }
-        }
-        return flat;
-    }
-    private double[] flattenOutputDeriv() {
-        double[] flat = new double[NETWORK_SIZE * MAX_LAYER_SIZE];
-        for (int l = 0; l < NETWORK_SIZE; l++) {
-            for (int n = 0; n < NETWORK_LAYER_SIZE[l]; n++) {
-                flat[l * MAX_LAYER_SIZE + n] = output_derivative[l][n];
-            }
-        }
-        return flat;
+        return getDoubles(bias);
     }
 
+    /**
+     * Creates 1 dim arr out of double[][] for output
+     * @return double[] flattened
+     */
+    private double[] flattenOutput() {
+        return getDoubles(output);
+    }
+
+    /**
+     * Creates 1 dim arr out of double[][] for OutputDeriv
+     * @return double[] flattened
+     */
+    private double[] flattenOutputDeriv() {
+        return getDoubles(output_derivative);
+    }
+
+    /**
+     * helper method that actually creates the one dim arr
+     * @param array double[][] array
+     * @return flattened array
+     */
+    private double[] getDoubles(double[][] array) {
+        double[] flat = new double[NETWORK_SIZE * MAX_LAYER_SIZE];
+        for (int l = 0; l < NETWORK_SIZE; l++) {
+            if (NETWORK_LAYER_SIZE[l] >= 0)
+                System.arraycopy(array[l], 0, flat, l * MAX_LAYER_SIZE, NETWORK_LAYER_SIZE[l]);
+        }
+        return flat;
+    }
 }

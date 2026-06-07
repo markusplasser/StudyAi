@@ -67,11 +67,11 @@ public class Connection {
 
         Fragen_Antworten[] save;
         save = FAAQ.findWithoutAI(aiAnswer,anzFragen,anzProFrage);
-        try{
-            save = FAAQ.findWithAI(aiAnswer,anzFragen,anzProFrage);
-        } catch(NullPointerException e){
-
-        }
+//        try{
+//            save = FAAQ.findWithAI(aiAnswer,anzFragen,anzProFrage);
+//        } catch(NullPointerException e){
+//
+//        }
 
         for(Fragen_Antworten f : save){
             System.out.println(f.toString());

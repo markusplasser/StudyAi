@@ -95,7 +95,7 @@ public class Controller implements EventHandler<Event> {
 
             if (dateiName.isEmpty()) {
                 o.fragenDateiTF.setPromptText("FILENAME AUSFÜLLEN");
-                o.fragenDateiTF.setStyle("-fx-prompt-text-fill: red;");
+                o.fragenDateiTF.setStyle("-fx-prompt-text-fill: #000000;");
             } else {
                 o.fragenDateiTF.setPromptText("Wähle eine Fragen-Datei aus...");
                 o.fragenDateiTF.setStyle("-fx-prompt-text-fill: grey;");
