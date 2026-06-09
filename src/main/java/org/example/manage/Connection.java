@@ -14,13 +14,13 @@ public class Connection {
 
     public static void main(String[] args) throws Exception {
         Properties p = new Properties();
-        try (FileInputStream fis = new FileInputStream("C:\\Users\\marku\\StudyAi\\config.properties")) {
+        try (FileInputStream fis = new FileInputStream("C:\\Users\\Spieler\\StudyAi\\config.properties")) {
             p.load(fis);
         } catch (IOException e) {
             e.printStackTrace();
         }
         var handleSave = new Handle_Save(p.getProperty("Project_Save_File"));
-        Fragen_Antworten[] fr = handleSave.read("Alex.bin");
+        Fragen_Antworten[] fr = handleSave.read("FürAlex2.bin");
         for (Fragen_Antworten fragenAntworten : fr) {
             System.out.println(fragenAntworten.toString());
         }

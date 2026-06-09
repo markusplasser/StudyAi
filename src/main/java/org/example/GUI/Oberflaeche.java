@@ -39,6 +39,7 @@ public class Oberflaeche extends Stage {
     public int anzFragen = 0;
 
     public Fragen_Antworten[] fragenArr;
+    public Integer[] randomOrder;
 
     private static final String BG_DEEP     = "#0F1117";
     private static final String BG_SURFACE  = "#1A1D27";
@@ -467,7 +468,9 @@ public class Oberflaeche extends Stage {
 
     public void zeigeFrageAnIndex(int index){
         frage.setText(fragenArr[index].getFrage());
-        String[] antworten = fragenArr[index].getContent();
+        String[] antworten = Arrays.copyOf(fragenArr[index].getContent(),fragenArr[index].getContent().length);
+
+
         Collections.shuffle(Arrays.asList(antworten));
 
         for(int i = 0; i < awnserButtons.length; i++) {
@@ -480,30 +483,48 @@ public class Oberflaeche extends Stage {
         }
     }
 
+    public void randomOrder(int anzFragen){
+        randomOrder = new Integer[anzFragen];
+        for(int i = 0; i < anzFragen; i++){
+            randomOrder[i] = i;
+        }
+        Collections.shuffle(Arrays.asList(randomOrder));
+    }
+
     public boolean checkAwnser(Button btn, int buttonIndex, int fragenNummer){
         boolean [] antwort = fragenArr[fragenNummer].getLoesung();
-        int loesung = -1;
+        String loesung = null;
 
         for(int i = 0; i < antwort.length; i++){
             if(antwort[i]){
-                loesung = i;
+                loesung = fragenArr[fragenNummer].getContent()[i];
+            }
+        }
+        for(int i = 0; i < antwort.length; i++){
+            if(awnserButtons[i].getText().equals(loesung)){
+                return true;
             }
         }
 
-        if(buttonIndex == loesung){
-            btn.setStyle(BTN_GREEN);
-            return true;
-        }
-        else{
-            return false;
-        }
+//        if(buttonIndex == loesung){
+//            btn.setStyle(BTN_GREEN);
+//            return true;
+//        }
+        return false;
     }
 
     public void showRightAwnser(int fragenNummer) {
         boolean[] antwort = fragenArr[fragenNummer].getLoesung();
+        String loesung = null;
+
+        for(int i = 0; i < antwort.length; i++){
+            if(antwort[i]){
+                loesung = fragenArr[fragenNummer].getContent()[i];
+            }
+        }
 
         for (int i = 0; i < antwort.length; i++) {
-            if (antwort[i]) {
+            if(awnserButtons[i].getText().equals(loesung)){
                 awnserButtons[i].setStyle(BTN_GREEN);
             }
             else{

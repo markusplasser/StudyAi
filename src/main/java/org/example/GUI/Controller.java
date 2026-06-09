@@ -106,10 +106,12 @@ public class Controller implements EventHandler<Event> {
                 int anzAntw = o.fragenArr[0].getContent().length;
                 o.buildFragenView(anzAntw);
 
+
                 o.fragenNum = 0;
                 o.anzRichtig = 0;
                 o.anzFragen = o.fragenArr.length;
-                o.zeigeFrageAnIndex(0);
+                o.randomOrder(o.anzFragen);
+                o.zeigeFrageAnIndex(o.randomOrder[o.fragenNum]);
                 o.root.setCenter(o.fragenVB);
             }
         }
@@ -128,7 +130,7 @@ public class Controller implements EventHandler<Event> {
                 o.awnserButtons[i].setMouseTransparent(false);
             }
             if(o.fragenNum < o.fragenArr.length) {
-                o.zeigeFrageAnIndex(o.fragenNum);
+                o.zeigeFrageAnIndex(o.randomOrder[o.fragenNum]);
 //                o.antwort1.setStyle(o.BTN_OUTLINE);
 //                o.antwort2.setStyle(o.BTN_OUTLINE);
 //                o.antwort3.setStyle(o.BTN_OUTLINE);
@@ -141,10 +143,10 @@ public class Controller implements EventHandler<Event> {
         if(o.awnserButtons != null) {
             for (int i = 0; i < o.awnserButtons.length; i++) {
                 if (source == o.awnserButtons[i]) {
-                    if (o.checkAwnser(o.awnserButtons[i], i, o.fragenNum)) {
+                    if (o.checkAwnser(o.awnserButtons[i], i,o.randomOrder[o.fragenNum])) {
                         o.anzRichtig++;
                     }
-                    o.showRightAwnser(o.fragenNum);
+                    o.showRightAwnser(o.randomOrder[o.fragenNum]);
                     o.disableAwnserButtons();
                 }
             }
@@ -155,11 +157,13 @@ public class Controller implements EventHandler<Event> {
         }
         if(source == o.again){
 
+
             o.fragenArr = c.returnQuestions(o.fragenDateiTF.getText());
             o.fragenNum = 0;
             o.anzRichtig = 0;
             o.anzFragen = o.fragenArr.length;
-            o.zeigeFrageAnIndex(0);
+            o.randomOrder(o.anzFragen);
+            o.zeigeFrageAnIndex(o.randomOrder[o.fragenNum]);
             o.root.setCenter(o.fragenVB);
         }
     }
