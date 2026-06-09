@@ -27,7 +27,7 @@ public class Aplication extends Application {
     @Override
     public void start(Stage stage) {
         if(appConfig.firstStart()) {
-            while(!showApiKeyDialog()){
+            while(showApiKeyDialog()){
                 if(isValidApiKey(appConfig.getProperties().getProperty("API_KEY"))) {
                     break;
                 }
@@ -39,7 +39,7 @@ public class Aplication extends Application {
 
     /**
      * popup window that requires the user to copy a valid API KEY or the window reopens
-     * @return always false
+     * @return always true
      */
     private boolean showApiKeyDialog() {
         TextInputDialog dialog = new TextInputDialog();
@@ -74,7 +74,7 @@ public class Aplication extends Application {
             appConfig.saveApiKey(result.get().trim());
         }
 
-        return false;
+        return true;
     }
     public static void main(String[] args) {
         launch(args);
