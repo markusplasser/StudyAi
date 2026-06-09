@@ -21,8 +21,7 @@ public class Oberflaeche extends Stage {
 
     final MenuItem menuCloseMI, itemerstellen, itemabfragen;
 
-
-    public Button submit, fragenStarten, nextQuestion, antwort1, antwort2, antwort3, home, again;
+    public Button submit, fragenStarten, nextQuestion, home, again;
     public TextField anzTF, anzAntwTF, fragenDateiTF, speicherOrtTF;
     public Label frage, quizFertig, richtig;
     public TextArea inputTextTA;
@@ -37,20 +36,25 @@ public class Oberflaeche extends Stage {
     public int fragenNum = 0;
     public int anzRichtig = 0;
     public int anzFragen = 0;
+    public boolean antwortGewaehlt = false;
 
     public Fragen_Antworten[] fragenArr;
     public Integer[] randomOrder;
+
 
     private static final String BG_DEEP     = "#0F1117";
     private static final String BG_SURFACE  = "#1A1D27";
     private static final String BG_CARD     = "#22263A";
     private static final String BG_INPUT    = "#2A2F45";
+
     private static final String ACCENT      = "#7C6AFA";
     private static final String ACCENT_GLOW = "#9B8DFF";
     private static final String ACCENT_DIM  = "#3D3570";
+
     private static final String TEXT_HI     = "#F0F0FF";
     private static final String TEXT_MID    = "#9A99B3";
     private static final String BORDER_COL  = "#2E3250";
+
 
     private static final String FIELD_STYLE =
             "-fx-background-color: " + BG_INPUT + ";" +
@@ -169,6 +173,11 @@ public class Oberflaeche extends Stage {
         show();
     }
 
+    /**
+     * Erstellt ein einheitlich gestyltes Abschnitts-Label in Großbuchstaben
+     * @param text der anzuzeigende Text
+     * @return das fertige Label
+     */
     private Label sectionLabel(String text) {
         Label l = new Label(text);
         l.setStyle(
@@ -179,6 +188,11 @@ public class Oberflaeche extends Stage {
         return l;
     }
 
+    /**
+     * Erstellt ein großes Titel-Label für Seitenüberschriften
+     * @param text der anzuzeigende Text
+     * @return das fertige Label
+     */
     private Label titleLabel(String text) {
         Label l = new Label(text);
         l.setStyle(
@@ -189,12 +203,19 @@ public class Oberflaeche extends Stage {
         return l;
     }
 
+    /**
+     * Erstellt eine dunkle Trennlinie zwischen Abschnitten
+     * @return der fertige Separator
+     */
     private Separator darkSep() {
         Separator s = new Separator();
         s.setStyle("-fx-background-color: " + BORDER_COL + "; -fx-opacity: 1;");
         return s;
     }
 
+    /**
+     * Baut die Oberfläche zum Erstellen neuer Fragen-Dateien
+     */
     private void buildFragenErstellen() {
         anzTF         = styledTextField("1 – 15");
         inputTextTA   = styledTextArea("Kopiere hier deinen Text hinein...");
@@ -211,11 +232,16 @@ public class Oberflaeche extends Stage {
 
         // Nur Zahlen erlauben
         anzTF.setTextFormatter(new TextFormatter<>(change -> {
-            if (change.getText().matches("[0-9]*")) return change;
+            String newText = change.getControlNewText();
+            //Zahl darf nur zwischen 1-15 sein
+            if (newText.isEmpty() || (newText.matches("[0-9]*") && Integer.parseInt(newText) >= 1 && Integer.parseInt(newText) <= 15)) {
+                return change;
+            }
             return null;
         }));
         anzAntwTF.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
+            //Zahl darf nur zwischen 3-5 sein
             if (newText.isEmpty() || (newText.matches("[0-9]*") && Integer.parseInt(newText) >= 3 && Integer.parseInt(newText) <= 5)) {
                 return change;
             }
@@ -237,6 +263,9 @@ public class Oberflaeche extends Stage {
         );
     }
 
+    /**
+     * Baut die Oberfläche zum Auswählen und Starten eines Quiz
+     */
     private void buildFragenAbfragen() {
         fragenDateiTF = styledTextField("Wähle eine Datei aus der Liste...");
         fragenDateiTF.setPrefHeight(42);
@@ -253,6 +282,7 @@ public class Oberflaeche extends Stage {
                         "-fx-font-size: 13px;" +
                         "-fx-text-fill: " + TEXT_HI + ";"
         );
+        // Dateiname automatisch ins TextField übernehmen wenn eine Datei ausgewählt wird
         fileLV.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
             if (n != null) fragenDateiTF.setText(n);
         });
@@ -279,6 +309,10 @@ public class Oberflaeche extends Stage {
         fragenAbfragenVB.getChildren().add(gp);
     }
 
+    /**
+     * Baut die Quiz-Ansicht mit dynamischer Anzahl an Antwort-Buttons
+     * @param anzAntworten Anzahl der Antwort-Buttons
+     */
     public void buildFragenView(int anzAntworten) {
         frage = new Label("Frage");
         frage.setWrapText(true);
@@ -312,6 +346,9 @@ public class Oberflaeche extends Stage {
         fragenVB.getChildren().add(nextQuestion);
     }
 
+    /**
+     * Baut den Ergebnis-Bildschirm mit Punkte-Anzeige und Prozent-Badge
+     */
     public void buildErgebniss() {
         ergebnissVB = new VBox(20);
         ergebnissVB.setPadding(new Insets(38, 44, 38, 44));
@@ -415,6 +452,11 @@ public class Oberflaeche extends Stage {
         ergebnissVB.getChildren().addAll(trophy, quizFertig, darkSep(), card, btnRow);
     }
 
+    /**
+     * Erstellt ein einheitlich gestyltes TextField
+     * @param prompt der Platzhaltertext
+     * @return das fertige TextField
+     */
     private TextField styledTextField(String prompt) {
         TextField tf = new TextField();
         tf.setPromptText(prompt);
@@ -422,6 +464,11 @@ public class Oberflaeche extends Stage {
         return tf;
     }
 
+    /**
+     * Erstellt eine einheitlich gestylte TextArea
+     * @param prompt der Platzhaltertext
+     * @return die fertige TextArea
+     */
     private TextArea styledTextArea(String prompt) {
         TextArea ta = new TextArea();
         ta.setPromptText(prompt);
@@ -440,6 +487,11 @@ public class Oberflaeche extends Stage {
         return ta;
     }
 
+    /**
+     * Erstellt einen primären Akzent-Button mit Hover-Effekt
+     * @param text der Button-Text
+     * @return der fertige Button
+     */
     private Button accentButton(String text) {
         Button btn = new Button(text);
         btn.setStyle(BTN_ACCENT);
@@ -448,6 +500,11 @@ public class Oberflaeche extends Stage {
         return btn;
     }
 
+    /**
+     * Erstellt einen sekundären Outline-Button mit Hover-Effekt
+     * @param text der Button-Text
+     * @return der fertige Button
+     */
     private Button outlineButton(String text) {
         Button btn = new Button(text);
         btn.setStyle(BTN_OUTLINE);
@@ -458,6 +515,10 @@ public class Oberflaeche extends Stage {
         return btn;
     }
 
+    /**
+     * Aktualisiert die Dateiliste mit den verfügbaren Fragen-Dateien
+     * @param fileNamesText Dateinamen getrennt durch Semikolon
+     */
     public void updateFileList(String fileNamesText) {
         fileLV.getItems().clear();
         if (fileNamesText == null || fileNamesText.isEmpty()) return;
@@ -466,7 +527,12 @@ public class Oberflaeche extends Stage {
         }
     }
 
+    /**
+     * Zeigt die Frage und Antworten am gegebenen Index an und setzt Buttons zurück
+     * @param index der Index der anzuzeigenden Frage
+     */
     public void zeigeFrageAnIndex(int index){
+        antwortGewaehlt = false;
         frage.setText(fragenArr[index].getFrage());
         String[] antworten = Arrays.copyOf(fragenArr[index].getContent(),fragenArr[index].getContent().length);
 
@@ -483,6 +549,10 @@ public class Oberflaeche extends Stage {
         }
     }
 
+    /**
+     * Erstellt eine zufällige Reihenfolge der Fragen
+     * @param anzFragen die Gesamtanzahl der Fragen
+     */
     public void randomOrder(int anzFragen){
         randomOrder = new Integer[anzFragen];
         for(int i = 0; i < anzFragen; i++){
@@ -491,6 +561,12 @@ public class Oberflaeche extends Stage {
         Collections.shuffle(Arrays.asList(randomOrder));
     }
 
+    /**
+     * Prüft ob die geklickte Antwort korrekt ist und färbt den Button entsprechend
+     * @param btn der geklickte Button
+     * @param fragenNummer die aktuelle Fragennummer
+     * @return true wenn die Antwort richtig ist, sonst false
+     */
     public boolean checkAwnser(Button btn, int buttonIndex, int fragenNummer){
         boolean [] antwort = fragenArr[fragenNummer].getLoesung();
         String loesung = null;
@@ -505,14 +581,13 @@ public class Oberflaeche extends Stage {
                 return true;
             }
         }
-
-//        if(buttonIndex == loesung){
-//            btn.setStyle(BTN_GREEN);
-//            return true;
-//        }
         return false;
     }
 
+    /**
+     * Zeigt nach einer Antwort alle Buttons in Grün/Rot je nach Richtigkeit
+     * @param fragenNummer die aktuelle Fragennummer
+     */
     public void showRightAwnser(int fragenNummer) {
         boolean[] antwort = fragenArr[fragenNummer].getLoesung();
         String loesung = null;
@@ -533,6 +608,9 @@ public class Oberflaeche extends Stage {
         }
     }
 
+    /**
+     * Deaktiviert alle Antwort-Buttons und Hover-Effekte nach einer Auswahl
+     */
     public void disableAwnserButtons() {
         for(Button b : awnserButtons) {
             b.setOnMouseEntered(null);

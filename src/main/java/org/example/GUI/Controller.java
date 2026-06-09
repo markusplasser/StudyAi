@@ -52,25 +52,26 @@ public class Controller implements EventHandler<Event> {
     private void handleActionEvent(ActionEvent event) {
         Object source = event.getSource();
 
-        if(source == o.submit){
-            String anzFragen = o.anzTF.getText();
-            String anzAntworten = o.anzAntwTF.getText();
-            String quell = o.inputTextTA.getText();
-            if(anzFragen == null || quell == null){
-                return;
-            }
-            if(anzFragen.isEmpty()){
-                o.anzTF.setText("BITTE AUSFÜLLEN");
-            }
-            if(anzAntworten == null){
-                return;
-            }
-            if(anzAntworten.isEmpty()){
-                o.anzTF.setText("BITTE AUSFÜLLEN");
-            }
-            if(quell.isEmpty()){
-                o.inputTextTA.setText("BITTE AUSFÜLLEN");
-            }
+            if(source == o.submit){
+                String anzFragen = o.anzTF.getText();
+                String anzAntworten = o.anzAntwTF.getText();
+                String quell = o.inputTextTA.getText();
+
+                if(anzFragen.isEmpty() || anzAntworten.isEmpty() || quell.isEmpty() || o.speicherOrtTF.getText().isEmpty()) {
+                    new  MyAlertFX(o,
+                            Alert.AlertType.ERROR,
+                            "Fehlende Eingabe",
+                            "Speichern Fehlgeschlagen",
+                            "Alle Felder ausfüllen",
+                            true,
+                            new Image("/images/alerterror.png"),
+                            "OK",
+                            "Cancel",
+                            Color.LIGHTBLUE,
+                            Color.WHITE,
+                            Color.BLACK);
+                    return;
+                }
 
             boolean b = c.saveConnection(quell,Integer.parseInt(anzFragen),Integer.parseInt(anzAntworten),o.speicherOrtTF.getText());
 
@@ -94,11 +95,19 @@ public class Controller implements EventHandler<Event> {
             String dateiName = o.fragenDateiTF.getText();
 
             if (dateiName.isEmpty()) {
-                o.fragenDateiTF.setPromptText("FILENAME AUSFÜLLEN");
-                o.fragenDateiTF.setStyle("-fx-prompt-text-fill: #000000;");
+                new  MyAlertFX(o,
+                        Alert.AlertType.ERROR,
+                        "Fehler beim Datei öffnen",
+                        "Datei öffnen fehlgeschlagen",
+                        "Wähle eine Datei aus",
+                        true,
+                        new Image("/images/alerterror.png"),
+                        "OK",
+                        "Cancel",
+                        Color.LIGHTBLUE,
+                        Color.WHITE,
+                        Color.BLACK);
             } else {
-                o.fragenDateiTF.setPromptText("Wähle eine Fragen-Datei aus...");
-                o.fragenDateiTF.setStyle("-fx-prompt-text-fill: grey;");
                 o.root.setCenter(o.fragenVB);
 
                 o.fragenArr = c.returnQuestions(dateiName);
@@ -125,15 +134,27 @@ public class Controller implements EventHandler<Event> {
         }
 
         if(source == o.nextQuestion) {
+            if(!o.antwortGewaehlt){
+                new  MyAlertFX(o,
+                        Alert.AlertType.INFORMATION,
+                        "Information",
+                        "Keine Antwort augewählt",
+                        "Wähle eine Antwort aus. Du kannst nicht zurück gehen",
+                        true,
+                        new Image("/images/alertinformation.png"),
+                        "OK",
+                        "Cancel",
+                        Color.LIGHTBLUE,
+                        Color.WHITE,
+                        Color.BLACK);
+                return;
+            }
             o.fragenNum++;
             for(int i = 0; i < o.awnserButtons.length; i++){
                 o.awnserButtons[i].setMouseTransparent(false);
             }
             if(o.fragenNum < o.fragenArr.length) {
                 o.zeigeFrageAnIndex(o.randomOrder[o.fragenNum]);
-//                o.antwort1.setStyle(o.BTN_OUTLINE);
-//                o.antwort2.setStyle(o.BTN_OUTLINE);
-//                o.antwort3.setStyle(o.BTN_OUTLINE);
             } else {
                 o.buildErgebniss();
                 o.root.setCenter(o.ergebnissVB);
@@ -143,6 +164,7 @@ public class Controller implements EventHandler<Event> {
         if(o.awnserButtons != null) {
             for (int i = 0; i < o.awnserButtons.length; i++) {
                 if (source == o.awnserButtons[i]) {
+                    o.antwortGewaehlt = true;
                     if (o.checkAwnser(o.awnserButtons[i], i,o.randomOrder[o.fragenNum])) {
                         o.anzRichtig++;
                     }
@@ -156,8 +178,6 @@ public class Controller implements EventHandler<Event> {
             o.root.setCenter(o.fragenAbfragenVB);
         }
         if(source == o.again){
-
-
             o.fragenArr = c.returnQuestions(o.fragenDateiTF.getText());
             o.fragenNum = 0;
             o.anzRichtig = 0;
