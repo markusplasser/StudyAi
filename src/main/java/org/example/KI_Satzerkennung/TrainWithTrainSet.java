@@ -57,8 +57,8 @@ public class TrainWithTrainSet {
     }
 
     /**
-     *
-     * @param text
+     * calculates the output for a text on the GPU with a network suited for the size
+     * @param text String input
      */
     public double[] doWithGPU(String text){
         Tokenizer tk = new Tokenizer();
@@ -72,6 +72,7 @@ public class TrainWithTrainSet {
             throw new RuntimeException(e);
         }
     }
+
     public TrainWithTrainSet() throws Exception {
         for(int i = 0; i < names.length; i++){
             networks[i] = Network.loadNetwork(names[i]);
@@ -80,15 +81,14 @@ public class TrainWithTrainSet {
             SentenceModel model = new SentenceModel(new File("de-sent.bin"));
             detector = new SentenceDetectorME(model);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Couldn't load the sentence model");
         }
     }
 
     /**
-     * richtet alles her damit die train methode aufgerufen werden kann
-     *
-     * @param size -satzlänge
-     * @param save -path zur Savedatei
+     * prepares everything before training the network
+     * @param size int sentence length
+     * @param save String save-file
      */
     public void trainWithdata(int size, String save){
         try{
@@ -110,9 +110,8 @@ public class TrainWithTrainSet {
 
 
     /**
-     * Lässt einen Satz testen und gibt das double[] zurück worin sich die Antwort befindet
-     * gnazes double arr weil die auswertung noch folgt...
-     * @param txt
+     * calculates the output for a text on the CPU with a network suited for the size
+     * @param txt String input
      */
     public double[] runSentenceThrough(String txt)  {
         Tokenizer tk = new Tokenizer();
@@ -131,6 +130,11 @@ public class TrainWithTrainSet {
         }
     }
 
+    /**
+     * finds the word count and returns the target length
+     * @param txt String input
+     * @return target length for network
+     */
     private int getTargetlength(String txt) {
         int length = getCategory(txt);
         int targetlength = 41;
@@ -151,8 +155,13 @@ public class TrainWithTrainSet {
         return targetlength;
     }
 
-    //helped with testing
-    //fills/shortans an arr to a desired length
+    /**
+     * helper method for testing
+     * trims the length of an array to the target length
+     * @param tokens double[] input arr
+     * @param targetLength int target length
+     * @return trimed array
+     */
     public double[] padOrTruncate(double[] tokens, int targetLength) {
         double[] result = new double[targetLength];
         int copyLength = Math.min(tokens.length, targetLength);
@@ -161,10 +170,8 @@ public class TrainWithTrainSet {
     }
 
     /**
-     * erzeugt ein TrainSet und lässt es befüllen
-     * liefer das befüllte TrainSet zurück.
-     * @param size -länge der Trainingssätze
-     * @return
+     * creates and fills a Trainset with a certain sentence length
+     * @return filled Trainset
      */
     public TrainSet createSet(int size){
         int inputsize = size == 1 ? 17 : size == 2 ? 22 : size == 3 ? 29 : 41;
@@ -175,7 +182,7 @@ public class TrainWithTrainSet {
 
 
     /**
-     * trainiert das Netz epoch -mal
+     * trains the network with the given parameters
      * @param net - Network
      * @param trainSet - Trainset
      * @param epoch - epoch size
@@ -193,6 +200,12 @@ public class TrainWithTrainSet {
         }
     }
 
+    /**
+     * Calculates the loss
+     * @param net network
+     * @param trainSet trainset
+     * @return calculated loss
+     */
     private double calcLoss(Network net, TrainSet trainSet){
         double totalLoss = 0;
         int samples = Math.min(500, trainSet.size());
@@ -210,6 +223,13 @@ public class TrainWithTrainSet {
         return sentence.replaceAll("[.!?]+$", "").trim();
     }
 
+    /**
+     * extracts a sentence from the context
+     * @param detector detector model
+     * @param context String context
+     * @param answerStart int start of sentence
+     * @return extracted sentence
+     */
     static String extractSentence(SentenceDetectorME detector, String context, int answerStart) {
         Span[] spans = detector.sentPosDetect(context);
 
@@ -218,16 +238,14 @@ public class TrainWithTrainSet {
                 return context.substring(span.getStart(), span.getEnd()).trim();
             }
         }
-
-        // Fallback falls kein Satz gefunden
         return context;
     }
 
     /**
-     * befüllt und gibt ein TrainSet zurück
+     * fills a trainset for
      * @param trainSet - Trainset
      * @param length - länge des Netzbereiches das triniert wird
-     * @return {@link TrainSet}
+     * @return filled Trainset
      */
     public TrainSet fillTrainSetQA(TrainSet trainSet, int length){
         try {
@@ -342,7 +360,6 @@ public class TrainWithTrainSet {
                     maxlength = 41;
                     break;
                 default:
-                    maxlength = 0;
             }
 
             smaller = Math.min(arrqu.size(),arran.size());
@@ -364,7 +381,6 @@ public class TrainWithTrainSet {
             return trainSet;
         } catch (Exception e) {
             System.out.println("Probleme mit dem Befüllen des TrainSets...");
-            e.printStackTrace();
             return null;
         }
     }
@@ -374,8 +390,8 @@ public class TrainWithTrainSet {
      * 1 -> >5 & <=10
      * 2 -> >10 & <= 15
      * 3 -> >15
-     * @param text
-     * @return
+     * @param text String text
+     * @return int word count area
      */
     private int getCategory(String text) {
         int wordCount = text.split("\\s+").length;

@@ -11,10 +11,10 @@ public class FindAnswersAndQuestions {
 
     /**
      * finds all components via trust that the AI responded the right way
-     * @param AIAnswertext
-     * @param anzFragen
-     * @param antwortenProFragen
-     * @return
+     * @param AIAnswertext String input text
+     * @param anzFragen int anzFragen
+     * @param antwortenProFragen int antwortenProFrage
+     * @return Fragen_Antworten[]
      */
     public Fragen_Antworten[] findWithoutAI(String AIAnswertext, int anzFragen, int antwortenProFragen) {
         Fragen_Antworten[] answer = new Fragen_Antworten[anzFragen];
@@ -58,8 +58,13 @@ public class FindAnswersAndQuestions {
         return answer;
     }
 
-
-
+    /**
+     * gets the next (antwortenProFrage) form zeilen at the counter index and return them in a String[]
+     * @param zeilen ArrayList zeilen
+     * @param antwortenProFrage int antwortenProFrage
+     * @param counter int counter
+     * @return String[] content
+     */
     private String[] getContent(ArrayList<String> zeilen, int antwortenProFrage, int counter){
         String[] ret = new String[antwortenProFrage];
         for(int i = 0; i < antwortenProFrage; i++){
@@ -68,6 +73,14 @@ public class FindAnswersAndQuestions {
         return ret;
     }
 
+    /**
+     * finds the questions and answers in the AIAnswertxt via checking the typ of sentence that is present
+     * trust that the AIAnswertxt is in a formatted form
+     * @param AIAnswertxt AIAnswertxt
+     * @param anzFragen answer possibilities
+     * @param AntwortenProFrage AntwortenProFrage
+     * @return Fragen_Antworten[]
+     */
     public Fragen_Antworten[] findWithAI(String AIAnswertxt, int anzFragen, int AntwortenProFrage) {
         TrainWithTrainSet t = null;
         try {
@@ -145,6 +158,7 @@ public class FindAnswersAndQuestions {
         return ret;
     }
 
+
     private int findContent(double[][] arrRawAns, int index) {
         for (int i = index; i < arrRawAns.length; i++) {
             if (auswertung(arrRawAns[i], 0.5).equals("Antwort")) {
@@ -164,12 +178,17 @@ public class FindAnswersAndQuestions {
         return -1;
     }
 
-    // 2) Entfernt: a) b) c) A) B) C)
     public static String removeLettering(String s) {
         return s.replaceAll("^\\s*([a-zA-Z]\\))\\s*", "");
     }
 
 
+    /**
+     * Checks if the networks output is good enough.
+     * @param arr arr
+     * @param genauigkeit genauigkeit
+     * @return checked answer
+     */
     public String auswertung(double[] arr, double genauigkeit) {
         if (arr.length != 2) {
             System.out.println("Auswertung hat ein ungültiges arr bekommen: " + Arrays.toString(arr));
@@ -184,11 +203,7 @@ public class FindAnswersAndQuestions {
     }
 
     /**
-     * Nicht selber gemacht
-     * Schaut welche Antwort am ähnlichsten ist.
-     * Levenshtein'sche methode:
-     * wie viele Zeichen muss ich ändern/einfügen/löschen um von String A zu String B zu kommen
-     *
+     * From
      * @param target
      * @param candidates
      * @return
