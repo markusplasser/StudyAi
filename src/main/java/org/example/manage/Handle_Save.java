@@ -47,9 +47,7 @@ public class Handle_Save {
         }
     }
     /**
-     * übernimmt das Speichern von ganzen Fargen_Antworten arrays
-     * Speichert am Anfang die Anzahl der Fragen + die Anz der Antwortmöglichkeiten
-     * StudyAi\save\filename - Speicherort
+     * saves the current Fragen_Antworten[] arr
      */
     public void save() {
 
@@ -72,10 +70,10 @@ public class Handle_Save {
     }
 
     /**
-     * Einlesen von ganzen Datein die um richtigen Vormat abgespeichert worden sind
-     * Gibt den ganzen Inhalt der Datei in einem Fragen-Antworten array zurück
-     * @param filename
-     * @return
+     * reads Fragen_Antworten[] from a file
+     * only looking in the default save folder for the file
+     * @param filename filename
+     * @return filled Fragen_Antworten[]
      */
     public Fragen_Antworten[] read(String filename){
         if(!check_file_exist(filename)){
@@ -116,7 +114,7 @@ public class Handle_Save {
 
     /**
      * Checks if the save folder exists
-     * @return
+     * @return true if the folder exists
      */
     public boolean isSaveFolderExisting(String path){
         Path p = Paths.get(path);
@@ -127,7 +125,7 @@ public class Handle_Save {
     }
 
     /**
-     * Erzeugt den Path mit dem save Folder
+     * creates a folder
      */
     private void createSaveFolder(String path){
         Path p = Paths.get(path);

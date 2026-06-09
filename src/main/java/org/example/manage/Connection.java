@@ -21,8 +21,8 @@ public class Connection {
         }
         var handleSave = new Handle_Save(p.getProperty("Project_Save_File"));
         Fragen_Antworten[] fr = handleSave.read("Alex.bin");
-        for(int i = 0; i< fr.length; i++){
-            System.out.println(fr[i].toString());
+        for (Fragen_Antworten fragenAntworten : fr) {
+            System.out.println(fragenAntworten.toString());
         }
     }
 
@@ -42,10 +42,10 @@ public class Connection {
     }
 
     /**
-     * Return true if and only if the generating and saving of Questions was successful
+     * creates a Fragen_Antworten[] from the inputtxt and saves it.
      * @param inputtxt Input text
-     * @param anzFragen ammout of question to generate
-     * @param anzProFrage ammount of different answers
+     * @param anzFragen amount of question to generate
+     * @param anzProFrage amount of different answers
      * @param fileName name of save file
      * @return return true if the generation and saving was successful
      */
@@ -67,11 +67,6 @@ public class Connection {
 
         Fragen_Antworten[] save;
         save = FAAQ.findWithoutAI(aiAnswer,anzFragen,anzProFrage);
-//        try{
-//            save = FAAQ.findWithAI(aiAnswer,anzFragen,anzProFrage);
-//        } catch(NullPointerException e){
-//
-//        }
 
         for(Fragen_Antworten f : save){
             System.out.println(f.toString());
@@ -85,8 +80,8 @@ public class Connection {
     }
 
     /**
-     * Returns the questions of the save file
-     * @param filename name of the save file
+     * Reads Fragen_Antworten from the file
+     * @param filename filename
      * @return Fragen_Antworten[] with the content
      */
     public Fragen_Antworten[] returnQuestions(String filename){
@@ -100,8 +95,8 @@ public class Connection {
     }
 
     /**
-     * Returns the list of Filenames in the save folder from the prop.file
-     * @return String
+     * reads the names of files in the default save folder
+     * @return list of filenames
      */
     public String returnFileNames() {
         String path = p.getProperty("Project_Save_File");
@@ -119,7 +114,7 @@ public class Connection {
 
         for (File file : files) {
             if (file.isFile()) {
-                if (sb.length() > 0) {sb.append(";");}
+                if (!sb.isEmpty()) {sb.append(";");}
                 sb.append(file.getName());
             }
         }

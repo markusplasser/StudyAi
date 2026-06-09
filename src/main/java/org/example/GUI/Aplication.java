@@ -36,16 +36,20 @@ public class Aplication extends Application {
         }
         new Oberflaeche(appConfig.getProperties());
     }
+
+    /**
+     * popup window that requires the user to copy a valid API KEY or the window reopens
+     * @return always false
+     */
     private boolean showApiKeyDialog() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Ersteinrichtung");
         dialog.setContentText("API-Key:");
 
-        // 1. Elemente für den Header erstellen
         Text text = new Text("Willkommen! Bitte gib deinen Google AI Studio API-Key ein.");
         Hyperlink link = new Hyperlink("Hier klicken, um zu aistudio.google.com zu gelangen");
 
-        // 2. Klick-Aktion für den Link hinzufügen (öffnet den Standard-Browser)
+
         link.setOnAction(e -> {
             try {
                 if (Desktop.isDesktopSupported()) {
@@ -56,16 +60,14 @@ public class Aplication extends Application {
             }
         });
 
-        // 3. Text und Link in ein vertikales Layout packen
-        VBox headerLayout = new VBox(5); // 5 Pixel Abstand zwischen Text und Link
-        headerLayout.setStyle("-fx-padding: 10;"); // Etwas Abstand zu den Rändern
+
+        VBox headerLayout = new VBox(5);
+        headerLayout.setStyle("-fx-padding: 10;");
         headerLayout.getChildren().addAll(text, link);
 
-        // 4. Das Layout als Header in die DialogPane setzen
         dialog.getDialogPane().setHeader(headerLayout);
         dialog.getDialogPane().setExpanded(true);
 
-        // Dialog anzeigen und auf Eingabe warten
         Optional<String> result = dialog.showAndWait();
 
         if (result.isPresent() && !result.get().trim().isEmpty()) {
@@ -78,6 +80,11 @@ public class Aplication extends Application {
         launch(args);
     }
 
+    /**
+     * tests if the API KEY is valid
+     * @param apiKey API KEY
+     * @return true if the KEY is valid
+     */
     public static boolean isValidApiKey(String apiKey) {
         try {
             String url = "https://generativelanguage.googleapis.com/v1beta/models?key=" + apiKey;

@@ -101,7 +101,7 @@ public class Controller implements EventHandler<Event> {
                 o.fragenDateiTF.setStyle("-fx-prompt-text-fill: grey;");
                 o.root.setCenter(o.fragenVB);
 
-                o.fragenArr = c.returnQuestions(o.fragenDateiTF.getText());
+                o.fragenArr = c.returnQuestions(dateiName);
 
                 int anzAntw = o.fragenArr[0].getContent().length;
                 o.buildFragenView(anzAntw);
@@ -129,11 +129,9 @@ public class Controller implements EventHandler<Event> {
             }
             if(o.fragenNum < o.fragenArr.length) {
                 o.zeigeFrageAnIndex(o.fragenNum);
-
-                o.antwort1.setStyle(o.BTN_OUTLINE);
-                o.antwort2.setStyle(o.BTN_OUTLINE);
-                o.antwort3.setStyle(o.BTN_OUTLINE);
-
+//                o.antwort1.setStyle(o.BTN_OUTLINE);
+//                o.antwort2.setStyle(o.BTN_OUTLINE);
+//                o.antwort3.setStyle(o.BTN_OUTLINE);
             } else {
                 o.buildErgebniss();
                 o.root.setCenter(o.ergebnissVB);

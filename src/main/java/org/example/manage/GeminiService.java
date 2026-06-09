@@ -24,6 +24,12 @@ public class GeminiService {
         API_KEY = apiKey;
     }
 
+    /**
+     * calls the right body reader for the given model
+     * @param model model count
+     * @param responseBody full response body
+     * @return the AI answer text
+     */
     public String getString(int model, String responseBody) {
         switch (model) {
             case 0:
@@ -41,7 +47,11 @@ public class GeminiService {
         return null;
     }
 
-    //for gemini-2.5-flash
+    /**
+     * reads the text body for Gemini-2.5-flash
+     * @param responseBody full responds body
+     * @return AI answer text
+     */
     public String getStringGeminiFlash(String responseBody) {
         Gson gson = new Gson();
         JsonObject json = gson.fromJson(responseBody, JsonObject.class);
@@ -54,7 +64,11 @@ public class GeminiService {
                 get("text").getAsString();
     }
 
-    //gemma-4-31b-it
+    /**
+     * reads the text body for gemma-4-31b-it
+     * @param responseBody full responds body
+     * @return AI answer text
+     */
     public String getStringGemma(String responseBody) {
         JsonObject root = JsonParser.parseString(responseBody).getAsJsonObject();
         JsonArray parts = root
@@ -73,8 +87,15 @@ public class GeminiService {
         return null;
     }
 
-    public String buildPromt(String inputtxt, int ammountQuestions, int ammountAnswerPosibileties) {
-        return "Generiere " + ammountQuestions + " Multiple-Choice-Fragen (je " + ammountAnswerPosibileties + " Optionen, a/b/c...) basierend auf diesem Text: \"" + inputtxt + "\".\n" +
+    /**
+     * builds the prompt sent to the AI model
+     * @param inputtxt input text
+     * @param amountQuestions amount questions
+     * @param amountAnswerPossibilities amount answer possibilities
+     * @return prompt
+     */
+    public String buildPromt(String inputtxt, int amountQuestions, int amountAnswerPossibilities) {
+        return "Generiere " + amountQuestions + " Multiple-Choice-Fragen (je " + amountAnswerPossibilities + " Optionen, a/b/c...) basierend auf diesem Text: \"" + inputtxt + "\".\n" +
                 "Regeln:\n" +
                 "- Sprache: Deutsch\n" +
                 "- Genau eine Option ist korrekt\n" +
@@ -84,8 +105,14 @@ public class GeminiService {
     }
 
 
-    public String ask(String prompt, int modell) {
-        String fullUrl = String.format(BASE_URL, modells[modell]) + "?key=" + this.API_KEY;
+    /**
+     * sends the URL request
+     * @param prompt prompt
+     * @param model model
+     * @return full answer body
+     */
+    public String ask(String prompt, int model) {
+        String fullUrl = String.format(BASE_URL, modells[model]) + "?key=" + this.API_KEY;
         String body = """
                 {
                   "contents": [{
@@ -103,9 +130,7 @@ public class GeminiService {
         HttpResponse<String> response = null;
         try {
             response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException e) {
-            return null;
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             return null;
         }
 

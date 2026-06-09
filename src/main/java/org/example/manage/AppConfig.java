@@ -14,6 +14,9 @@ public class AppConfig {
     private Properties prop = new Properties();
 
 
+    /**
+     * loads ot initializes the project default save folder and reads/creates the properties file
+     */
     public void loadOrInitialize() {
         File defaultFolder = new File(CONFIG_DIR);
         File propFile = new File(CONFIG_FILE);
@@ -26,6 +29,11 @@ public class AppConfig {
         }
     }
 
+    /**
+     * creates the default save folder and prop file for the project
+     * @param defaultFolder defaultFolder
+     * @param propFile propFile
+     */
     private void firstStart(File defaultFolder, File propFile) {
         if(!defaultFolder.exists()){
             defaultFolder.mkdir();
@@ -62,6 +70,10 @@ public class AppConfig {
         return prop;
     }
 
+    /**
+     * saves API KEY and sets the first time property to false
+     * @param apiKey API KEY
+     */
     public void saveApiKey(String apiKey) {
         prop.setProperty("API_KEY", apiKey);
         prop.setProperty("FIRST_TIME", "false");

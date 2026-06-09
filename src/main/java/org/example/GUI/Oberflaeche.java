@@ -10,7 +10,10 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.example.manage.Fragen_Antworten;
 
+import java.util.List;
 import java.util.Properties;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class Oberflaeche extends Stage {
 
@@ -465,6 +468,7 @@ public class Oberflaeche extends Stage {
     public void zeigeFrageAnIndex(int index){
         frage.setText(fragenArr[index].getFrage());
         String[] antworten = fragenArr[index].getContent();
+        Collections.shuffle(Arrays.asList(antworten));
 
         for(int i = 0; i < awnserButtons.length; i++) {
             awnserButtons[i].setText(antworten[i]);

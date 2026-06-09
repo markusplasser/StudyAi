@@ -14,6 +14,12 @@ public class TrainSet {
         this.outputLength = outputLength;
     }
 
+    /**
+     * adds a data point to the set
+     * @param input input
+     * @param target target
+     * @return true if and only if adding was successful
+     */
     public boolean add(double[] input, double[] target){
         if(input.length != inputLength || target.length != outputLength){
             return false;
@@ -29,20 +35,21 @@ public class TrainSet {
         return data.get(index)[1];
     }
 
-    public TrainSet extractBatch(int ammount){
+    /**
+     * extracts a small amount of data points from a trainset
+     * @param amount amount
+     * @return trainset
+     */
+    public TrainSet extractBatch(int amount){
         TrainSet ret = new TrainSet(inputLength,outputLength);
         ArrayList<Integer> check = new ArrayList<>();
         Random ran = new Random();
-        for(int i = 0; i<ammount;i++){
+        for(int i = 0; i<amount;i++){
             int r = ran.nextInt(data.size());
             if(check.contains(r)){
                 i--;
             }
             else{
-                //Fehler warum es so lange nicht funktioniert hat
-                //falsch ret.add(getInput(r),getTarget(i)
-                //                                     |error
-                //falschen traget rausgeholt desshalb 50/50 ob satz oder Antwort
                 ret.add(getInput(r),getTarget(r));
                 check.add(r);
             }
