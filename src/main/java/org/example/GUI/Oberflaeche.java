@@ -501,7 +501,7 @@ public class Oberflaeche extends Stage {
             }
         }
         for(int i = 0; i < antwort.length; i++){
-            if(awnserButtons[i].getText().equals(loesung)){
+            if(btn.getText().equals(loesung)){
                 return true;
             }
         }
