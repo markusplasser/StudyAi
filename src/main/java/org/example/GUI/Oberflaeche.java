@@ -143,7 +143,10 @@ public class Oberflaeche extends Stage {
         menuCloseMI.addEventHandler(ActionEvent.ACTION, controller);
         menuCloseMI.setMnemonicParsing(true);
 
-        Menu navigation = new Menu("Navigation");
+        Menu navigation = new Menu();
+        Label l = new Label("Navigation");
+        l.setStyle("-fx-text-fill: white;");
+        navigation.setGraphic(l);
         navigation.getItems().setAll(itemerstellen, itemabfragen);
 
         MenuBar menubar = new MenuBar();

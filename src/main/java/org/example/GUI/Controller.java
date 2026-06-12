@@ -1,6 +1,7 @@
 package org.example.GUI;
 
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -9,6 +10,8 @@ import javafx.scene.image.Image;
 import javafx.scene.input.*;
 import javafx.scene.paint.Color;
 import org.example.manage.Connection;
+import org.example.manage.MyThread;
+
 import java.util.Properties;
 
 public class Controller implements EventHandler<Event> {
@@ -51,7 +54,6 @@ public class Controller implements EventHandler<Event> {
 
     private void handleActionEvent(ActionEvent event) {
         Object source = event.getSource();
-
             if(source == o.submit){
                 String anzFragen = o.anzTF.getText();
                 String anzAntworten = o.anzAntwTF.getText();
@@ -73,22 +75,52 @@ public class Controller implements EventHandler<Event> {
                     return;
                 }
 
-            boolean b = c.saveConnection(quell,Integer.parseInt(anzFragen),Integer.parseInt(anzAntworten),o.speicherOrtTF.getText());
+                LoadingPopup loading = new LoadingPopup();
+                loading.show();
 
-            if(!b){
-                new  MyAlertFX(o,
-                        Alert.AlertType.ERROR,
-                        "Fehler beim Speichern",
-                        "Speichern Fehlgeschlagen",
-                        "Versuche es später erneut",
-                        true,
-                        new Image("/images/alerterror.png"),
-                        "OK",
-                        "Cancel",
-                        Color.LIGHTBLUE,
-                        Color.WHITE,
-                        Color.BLACK);
-            }
+
+                Thread backgroundThread = new Thread(() -> {
+                    try {
+
+                        boolean b = c.saveConnection(quell,Integer.parseInt(anzFragen),Integer.parseInt(anzAntworten),o.speicherOrtTF.getText());
+                        Platform.runLater(() -> {
+                            loading.close();
+                            if(!b){
+                                new  MyAlertFX(o,
+                                        Alert.AlertType.ERROR,
+                                        "Fehler beim Speichern",
+                                        "Speichern Fehlgeschlagen",
+                                        "Versuche es später erneut",
+                                        true,
+                                        new Image("/images/alerterror.png"),
+                                        "OK",
+                                        "Cancel",
+                                        Color.LIGHTBLUE,
+                                        Color.WHITE,
+                                        Color.BLACK);
+                            }
+                            else{
+                                new MyAlertFX(o,
+                                        Alert.AlertType.INFORMATION,
+                                        "Information",
+                                        "Speichern Erfolgreich",
+                                        "Fragen wurden erfolgreich erzeugt",
+                                        true,
+                                        new Image("/images/alertinformation.png"),
+                                        "OK",
+                                        "Cancel",
+                                        Color.LIGHTBLUE,
+                                        Color.WHITE,
+                                        Color.BLACK);
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        loading.close();
+                    }
+                });
+                backgroundThread.start();
         }
 
         if (source == o.fragenStarten) {
