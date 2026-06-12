@@ -14,10 +14,11 @@ import java.util.*;
 public class TrainWithTrainSet {
     /**
      * Wörter
-     * klein <= 6
-     * mittelklein > 6 && <= 10
-     * mittelgroß > 10 && <= 14
-     * groß > 14
+     *
+     * klein &lt;= 6
+     * mittelklein &gt; 6 &amp;&amp; &lt;= 10
+     * mittelgroß &gt; 10 &amp;&amp; &lt;= 14
+     * groß &gt; 14
      */
 
     SentenceDetectorME detector = null;
@@ -386,12 +387,13 @@ public class TrainWithTrainSet {
     }
 
     /**
-     * 0 -> <=5
-     * 1 -> >5 & <=10
-     * 2 -> >10 & <= 15
-     * 3 -> >15
-     * @param text String text
-     * @return int word count area
+     * 0 -&gt; &lt;=5
+     * 1 -&gt; &gt;5 &amp; &lt;=10
+     * 2 -&gt; &gt;10 &amp; &lt;=15
+     * 3 -&gt; &gt;15
+     *
+     * @param text der zu prüfende Text
+     * @return die Kategorie der Wortanzahl als Zahl
      */
     private int getCategory(String text) {
         int wordCount = text.split("\\s+").length;

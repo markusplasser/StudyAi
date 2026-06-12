@@ -536,6 +536,9 @@ public class Oberflaeche extends Stage {
         frage.setText(fragenArr[index].getFrage());
         String[] antworten = Arrays.copyOf(fragenArr[index].getContent(),fragenArr[index].getContent().length);
 
+        for(int i = 0; i < antworten.length; i++) {
+            antworten[i] = antworten[i].substring(3);
+        }
 
         Collections.shuffle(Arrays.asList(antworten));
 
@@ -573,7 +576,7 @@ public class Oberflaeche extends Stage {
 
         for(int i = 0; i < antwort.length; i++){
             if(antwort[i]){
-                loesung = fragenArr[fragenNummer].getContent()[i];
+                loesung = fragenArr[fragenNummer].getContent()[i].substring(3);
             }
         }
         for(int i = 0; i < antwort.length; i++){
@@ -594,7 +597,7 @@ public class Oberflaeche extends Stage {
 
         for(int i = 0; i < antwort.length; i++){
             if(antwort[i]){
-                loesung = fragenArr[fragenNummer].getContent()[i];
+                loesung = fragenArr[fragenNummer].getContent()[i].substring(3);
             }
         }
 
