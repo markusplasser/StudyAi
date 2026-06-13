@@ -142,8 +142,10 @@ public class Oberflaeche extends Stage {
         menuCloseMI = new MenuItem("_Close");
         menuCloseMI.addEventHandler(ActionEvent.ACTION, controller);
         menuCloseMI.setMnemonicParsing(true);
-
-        Menu navigation = new Menu("Navigation");
+        Menu navigation = new Menu();
+        Label menuLabel = new Label("Navigation");
+        menuLabel.setStyle("-fx-text-fill: white;");
+        navigation.setGraphic(menuLabel);
         navigation.getItems().setAll(itemerstellen, itemabfragen);
 
         MenuBar menubar = new MenuBar();
@@ -229,6 +231,7 @@ public class Oberflaeche extends Stage {
         speicherOrtTF.setPrefHeight(42);
         anzAntwTF.setPrefHeight(42);
         submit.setOnAction(controller::handle);
+
 
         // Nur Zahlen erlauben
         anzTF.setTextFormatter(new TextFormatter<>(change -> {

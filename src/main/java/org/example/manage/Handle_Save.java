@@ -77,7 +77,6 @@ public class Handle_Save {
      */
     public Fragen_Antworten[] read(String filename){
         if(!check_file_exist(filename)){
-            System.out.println("Das File das eingelesen werden soll gibt es nicht");
             return null;
         }
 
@@ -100,7 +99,6 @@ public class Handle_Save {
             }
         }
         catch(IOException e){
-            System.out.println("Fehler beim einlesen aus der Datei:" + userpath);
             return null;
         }
         return ret.toArray(new Fragen_Antworten[0]);

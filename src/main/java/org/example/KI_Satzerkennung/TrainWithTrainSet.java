@@ -120,9 +120,9 @@ public class TrainWithTrainSet {
             tk.loadTokenizer("res/tokenizer.json");
             double[] input = tk.tokenizeBatch(new String[]{txt}, targetlength)[0];
             double[] ergebnis =activeNetwork.checkSentence(input);
-            System.out.println(txt);
-            System.out.println("Question: " + ergebnis[0]);
-            System.out.println("Statement: " + ergebnis[1]);
+//            System.out.println(txt);
+//            System.out.println("Question: " + ergebnis[0]);
+//            System.out.println("Statement: " + ergebnis[1]);
             return ergebnis;
 
         } catch (Exception e) {
@@ -219,7 +219,7 @@ public class TrainWithTrainSet {
         return totalLoss / samples;
     }
 
-    static String removeSentenceEnding(String sentence) {
+    public static String removeSentenceEnding(String sentence) {
         return sentence.replaceAll("[.!?]+$", "").trim();
     }
 

@@ -1,3 +1,5 @@
+package org.example;
+
 import dev.langchain4j.model.ollama.OllamaChatModel;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,7 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 
-class UniTest {
+class UniTest { //Mostly generated
 
     @Nested
     @ExtendWith(MockitoExtension.class)
@@ -115,16 +117,16 @@ class UniTest {
 
             String result = fa.toString();
 
-            assertTrue(result.contains("Question: Q"));
-            assertTrue(result.contains("[ ] Wrong"));
-            assertTrue(result.contains("[X] Right"));
+            assertTrue(result.contains("Frage: Q"));
+            assertTrue(result.contains("[ ]"));
+            assertTrue(result.contains("[X]"));
         }
 
         @Test
         void testToStringNullSafety() {
             Fragen_Antworten fa = new Fragen_Antworten();
             String result = fa.toString();
-            assertTrue(result.contains("(No answer defined)"));
+            assertTrue(result.contains("(Keine Antworten definiert)"));
         }
     }
 
@@ -193,7 +195,7 @@ class UniTest {
             handleSave.setFilename("existenz_test");
             handleSave.save();
 
-            assertTrue(handleSave.check_file_exist("existenz_test"));
+            assertTrue(handleSave.check_file_exist("existenz_test.bin"));
         }
 
         // ─────────────────────────────────────────────
@@ -212,7 +214,7 @@ class UniTest {
             handleSave.setFilename("single");
             handleSave.save();
 
-            Fragen_Antworten[] result = handleSave.read("single");
+            Fragen_Antworten[] result = handleSave.read("single.bin");
 
             assertNotNull(result);
             assertEquals(1, result.length);
@@ -233,7 +235,7 @@ class UniTest {
             handleSave.setFilename("multi");
             handleSave.save();
 
-            Fragen_Antworten[] result = handleSave.read("multi");
+            Fragen_Antworten[] result = handleSave.read("multi.bin");
 
             assertNotNull(result);
             assertEquals(3, result.length);
@@ -256,7 +258,7 @@ class UniTest {
             handleSave.setFilename("all_true");
             handleSave.save();
 
-            Fragen_Antworten[] result = handleSave.read("all_true");
+            Fragen_Antworten[] result = handleSave.read("all_true.bin");
 
             assertNotNull(result);
             assertArrayEquals(new boolean[]{true, true, true}, result[0].getLoesung());
@@ -271,7 +273,7 @@ class UniTest {
             handleSave.setFilename("umlaute");
             handleSave.save();
 
-            Fragen_Antworten[] result = handleSave.read("umlaute");
+            Fragen_Antworten[] result = handleSave.read("umlaute.bin");
 
             assertNotNull(result);
             assertEquals(spezial, result[0].getFrage());
